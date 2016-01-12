@@ -1,12 +1,12 @@
-(use 'clojure.java.io)
+(def lines (clojure.string/split-lines (slurp "day2.txt")))
 
 (defn wrapping [x y z]
-  (let [[x y z] (map bigint [x y z])
+  (let [[x y z] (map #(Integer. %) [x y z])
         [s1 s2 _] (sort [x y z])]
     (+ (* 2 x y) (* 2 y z) (* 2 x z) (* s1 s2))))
 
 (defn ribbon [x y z]
-  (let [[x y z] (map bigint [x y z])
+  (let [[x y z] (map #(Integer. %) [x y z])
         [s1 s2 _] (sort [x y z])]
     (+ s1 s1 s2 s2 (* x y z))))
 
@@ -22,8 +22,6 @@
 (defn solve-ribbon [sides]
   (solve-f ribbon sides))
 
-(with-open [rdr (reader "day2.txt")]
-  (let [lines (line-seq rdr)]
-    (println (solve-wrapping lines))
-    (println (solve-ribbon lines))))
+(println (solve-wrapping lines))
+(println (solve-ribbon lines))
 
