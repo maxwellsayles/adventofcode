@@ -12,15 +12,6 @@
      :prod (*' prod x)
      :vals (cons x vals)}))
 
-(defn add-sol [acc xs ys zs sol]
-  (assoc acc [(:sum xs) (:sum ys) (:sum zs)] sol))
-
-(defn lookup [acc xs ys zs]
-  (or (acc [(:sum xs) (:sum ys) (:sum zs)]) false))
-
-(defn acc-contains? [acc xs ys zs]
-  (contains? acc [(:sum xs) (:sum ys) (:sum zs)]))
-
 (defn best [xs ys]
   (cond (false? xs) ys
         (false? ys) xs
@@ -29,15 +20,31 @@
         (< (:prod xs) (:prod ys)) xs
         :else ys))
 
-(defn step [xs ys zs vs]
+(defn step [bs xs ys zs vs]
   (cond
     ;; Anything exceed the sum? Then no solution possible.
-    (or (> (:sum xs) t) (> (:sum ys) t) (> (:sum zs) t))
-    false
+    (or (> (:sum xs) t)
+        (> (:sum ys) t)
+        (> (:sum zs) t))
+    bs
+
+    ;; Everything longer than the best so far? Prune.
+    (and bs (let [m (:count bs)]
+              (and (> (:count xs) m)
+                   (> (:count ys) m)
+                   (> (:count zs) m))))
+    bs
+
+    ;; Everything more entangled than the best so far? Prune.
+    (and bs (let [m (:prod bs)]
+              (and (> (:prod xs) m)
+                   (> (:prod ys) m)
+                   (> (:prod zs) m))))
+    bs
               
     ;; Nothing exceeds the sum.  Out of values?  Choose the best.
     (empty? vs)
-    (-> xs (best ys) (best zs))
+    (-> bs (best xs) (best ys) (best zs))
 
     ;; We still have values.  Try the next value in each position.
     :else
@@ -45,10 +52,10 @@
           vs2 (rest vs)
           xs2 (append v xs)
           ys2 (append v ys)
-          zs2 (append v zs)
-          xs-sol (step xs2 ys zs vs2)
-          ys-sol (step xs ys2 zs vs2)
-          zs-sol (step xs ys zs2 vs2)]
-      (-> xs-sol (best ys-sol) (best zs-sol)))))
+          zs2 (append v zs)]
+      (-> bs
+          (step xs2 ys zs vs2)
+          (step xs ys2 zs vs2)
+          (step xs ys zs2 vs2)))))
                
-;;(def sol (step {} start start start input))
+(println (step false start start start input))
