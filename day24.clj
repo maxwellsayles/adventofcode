@@ -1,16 +1,15 @@
 (def input [1 2 3 7 11 13 17 19 23 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101 103 107 109 113])
 ;;(def input [1 2 3 4 5 7 8 9 10 11])
 (def n (count input))
-(def t (/ (reduce + input) 3))
+(def t (atom (/ (reduce + input) 3)))
 
-(def start {:count 0 :sum 0 :prod 1 :vals '()})
+(def start {:count 0 :sum 0 :prod 1})
 
 (defn append [x xs]
-  (let [{:keys [count sum prod vals]} xs]
+  (let [{:keys [count sum prod]} xs]
     {:count (inc count)
      :sum (+ sum x)
-     :prod (*' prod x)
-     :vals (cons x vals)}))
+     :prod (*' prod x)}))
 
 (defn best [xs ys]
   (cond (false? xs) ys
@@ -20,42 +19,37 @@
         (< (:prod xs) (:prod ys)) xs
         :else ys))
 
-(defn step [bs xs ys zs vs]
+(defn step [bs xs vs]
   (cond
-    ;; Anything exceed the sum? Then no solution possible.
-    (or (> (:sum xs) t)
-        (> (:sum ys) t)
-        (> (:sum zs) t))
+    ;; Exceeds the sum? Then no solution possible.
+    (> (:sum xs) @t)
     bs
 
-    ;; Everything longer than the best so far? Prune.
-    (and bs (let [m (:count bs)]
-              (and (> (:count xs) m)
-                   (> (:count ys) m)
-                   (> (:count zs) m))))
+    ;; Longer than the best so far? Prune.
+    (and bs (> (:count xs) (:count bs)))
     bs
 
-    ;; Everything more entangled than the best so far? Prune.
-    (and bs (let [m (:prod bs)]
-              (and (> (:prod xs) m)
-                   (> (:prod ys) m)
-                   (> (:prod zs) m))))
+    ;; More entangled than the best so far? Prune.
+    (and bs (> (:prod xs) (:prod bs)))
     bs
-              
-    ;; Nothing exceeds the sum.  Out of values?  Choose the best.
-    (empty? vs)
-    (-> bs (best xs) (best ys) (best zs))
 
-    ;; We still have values.  Try the next value in each position.
+    ;; Out of values, but doesn't weight enough?  No solution possible.
+    (and (empty? vs) (< (:sum xs) @t))
+    bs
+
+    ;; Out of values and equal to target. Choose best.
+    (and (empty? vs) (= (:sum xs) @t))
+    (best bs xs)
+
+    ;; We still have values.  Try the next value in the shortest line and elsewhere.
     :else
     (let [v (first vs)
           vs2 (rest vs)
-          xs2 (append v xs)
-          ys2 (append v ys)
-          zs2 (append v zs)]
+          xs2 (append v xs)]
       (-> bs
-          (step xs2 ys zs vs2)
-          (step xs ys2 zs vs2)
-          (step xs ys zs2 vs2)))))
+          (step xs vs2)
+          (step xs2 vs2)))))
                
-(println (step false start start start input))
+(println (step false start input))
+(reset! t (/ (reduce + input) 4))
+(println (step false start input))
