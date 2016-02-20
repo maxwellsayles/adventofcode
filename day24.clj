@@ -29,19 +29,15 @@
         (< (:prod xs) (:prod ys)) xs
         :else ys))
 
-(defn step [acc xs ys zs vs]
+(defn step [xs ys zs vs]
   (cond
-    ;; Already seen this input? Return the cache.
-    (acc-contains? acc xs ys zs)
-    acc
-
     ;; Anything exceed the sum? Then no solution possible.
     (or (> (:sum xs) t) (> (:sum ys) t) (> (:sum zs) t))
-    acc
+    false
               
     ;; Nothing exceeds the sum.  Out of values?  Choose the best.
     (empty? vs)
-    (add-sol acc xs ys zs (-> xs (best ys) (best zs)))
+    (-> xs (best ys) (best zs))
 
     ;; We still have values.  Try the next value in each position.
     :else
@@ -50,13 +46,9 @@
           xs2 (append v xs)
           ys2 (append v ys)
           zs2 (append v zs)
-          acc2 (-> acc
-                   (step xs2 ys zs vs2)
-                   (step xs ys2 zs vs2)
-                   (step xs ys zs2 vs2))
-          xs-sol (lookup acc2 xs2 ys zs)
-          ys-sol (lookup acc2 xs ys2 zs)
-          zs-sol (lookup acc2 xs ys zs2)]
-      (add-sol acc2 xs ys zs (-> xs-sol (best ys-sol) (best zs-sol))))))
+          xs-sol (step xs2 ys zs vs2)
+          ys-sol (step xs ys2 zs vs2)
+          zs-sol (step xs ys zs2 vs2)]
+      (-> xs-sol (best ys-sol) (best zs-sol)))))
                
-(def sol (step {} start start start input))
+;;(def sol (step {} start start start input))
