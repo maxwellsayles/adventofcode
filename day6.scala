@@ -12,9 +12,14 @@ def most[A, S <% Seq[A]](xs: S): A = {
   histogram(xs).toList.sortBy(_._2).reverse.head._1
 }
 
+def least[A, S <% Seq[A]](xs: S): A = {
+  histogram(xs).toList.sortBy(_._2).head._1
+}
+
 def transpose(xs: List[String]): Seq[String] = {
   0.to(7).map(i => xs.map(_(i)).mkString)
 }
 
 println(transpose(input).map(most(_)).mkString)
+println(transpose(input).map(least(_)).mkString)
 
