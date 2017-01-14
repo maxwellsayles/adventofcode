@@ -5,7 +5,6 @@ def extract(s: String): Option[(String, Int)] = {
   s match {
     case pattern(s, secId, top5) => {
       val s2 = s.filter(_ != '-')
-        .sorted
         .groupBy(identity)
         .mapValues(_.length)
         .toList
