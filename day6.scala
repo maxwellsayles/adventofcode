@@ -9,11 +9,11 @@ def histogram[A, S <% Seq[A]](xs: S): Map[A, Int] = {
 }
 
 def most[A, S <% Seq[A]](xs: S): A = {
-  histogram(xs).toList.sortBy(_._2).reverse.head._1
+  histogram(xs).toList.maxBy(_._2)._1
 }
 
 def least[A, S <% Seq[A]](xs: S): A = {
-  histogram(xs).toList.sortBy(_._2).head._1
+  histogram(xs).toList.minBy(_._2)._1
 }
 
 def transpose(xs: List[String]): Seq[String] = {
