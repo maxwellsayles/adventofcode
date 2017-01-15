@@ -18,7 +18,8 @@ def parse(s: String): Command = {
 }
 
 val input = io.Source.fromFile("day8.txt").mkString.lines.map(parse).toList
-val n = 50
+val maxw = 50
+val maxh = 6
 
 type Screen = Array[Array[Boolean]]
 
@@ -31,6 +32,7 @@ def rect(r: Rect, arr: Screen) {
 }
 
 def rotateRow(r: RotateRow, arr: Screen) {
+  val n = arr.size
   val tmp = Array.ofDim[Boolean](n)
   for (x <- 0 until n) {
     tmp(x) = arr(x)(r.y)
@@ -41,6 +43,7 @@ def rotateRow(r: RotateRow, arr: Screen) {
 }
 
 def rotateCol(r: RotateCol, arr: Screen) {
+  val n = arr(r.x).size
   val tmp = Array.ofDim[Boolean](n)
   for (y <- 0 until n) {
     tmp(y) = arr(r.x)(y)
@@ -58,6 +61,6 @@ def apply(c: Command, arr: Screen) {
   }
 }
 
-val screen = Array.ofDim[Boolean](n, n)
+val screen = Array.ofDim[Boolean](maxw, maxh)
 input.foreach(c => apply(c, screen))
 println(screen.map(_.count(identity)).sum)
