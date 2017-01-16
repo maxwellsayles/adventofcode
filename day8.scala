@@ -64,3 +64,10 @@ def apply(c: Command, arr: Screen) {
 val screen = Array.ofDim[Boolean](maxw, maxh)
 input.foreach(c => apply(c, screen))
 println(screen.map(_.count(identity)).sum)
+
+for (y <- 0 until maxh) {
+  for (x <- 0 until maxw) {
+    print(if (screen(x)(y)) 'x' else '.')
+  }
+  println()
+}
