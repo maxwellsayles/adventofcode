@@ -18,4 +18,10 @@ def expand(s: String, acc: StringBuilder = new StringBuilder()): String = {
   }
 }
 
+def expand2(s: String): String = {
+  println(s.size)
+  if (s.exists(_ == '(')) expand2(expand(s)) else s
+}
+
 println(expand(input).size)
+println(expand2(input).size)
