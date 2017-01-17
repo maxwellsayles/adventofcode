@@ -1,16 +1,21 @@
 val input = io.Source.fromFile("day9.txt").mkString.filter(_ != '\n')
 
-def expand(s: String, acc: String = ""): String = {
+def expand(s: String, acc: StringBuilder = new StringBuilder()): String = {
   val pattern = """^\((\d+)x(\d+)\).*""".r
   s match {
+    case "" => acc.toString
     case pattern(c, t) => {
       val n = s"(${c}x${t})".size
       val p = s.drop(n).take(c.toInt)
-      expand(s.drop(n + c.toInt), acc + p * t.toInt)
+      acc.append(p * t.toInt)
+      expand(s.drop(n + c.toInt), acc)
     }
-    case "" => acc
-    case _ => expand(s.tail, acc + s.head)
+    case _ => {
+      val (pre, post) = s.span(_ != '(')
+      acc.append(pre)
+      expand(post, acc)
+    }
   }
 }
 
-println(expand(input, "").size)
+println(expand(input).size)
