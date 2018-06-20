@@ -15,24 +15,18 @@ case class Floor(parts: List[Part]) {
 
   def isEmpty = parts.isEmpty
 
-  // def moves = {
-  //   val moveOneGenerator = removeOne(generators).map({
-  //     case (x, xs) => (List(x), Floor(xs, chips))
-  //   })
-  //   val moveTwoGenerators = moveOneGenerator.flatMap({
-  //     case (x, xs) => removeOne(xs).map({
-  //       case (y, ys) => (y :: x, Floor(ys, chips))
-  //     })
-  //   }})
-  //   val moveOneChip = removeOne(chips).map({case (x, xs) => (List(x), xs)})
-  //   val moveTwoChips = moveOneChip.flatMap({case (x, xs) => {
-  //     removeOne(xs).map({ case (y, ys) => (y :: x, ys)})
-  //   }})
-  //   val moveOneOfEach = for ((x, xs) <- moveOneGenerator)
-  //     for ((y, ys) <- moveOneChip)
-  //     yield (x ::: y, Floor(xs, ys))
+  def moveOne: List[(List[Part], Floor)] =
+    removeOne(parts).map({
+      case (x, xs) => (List(x), Floor(xs))
+    })
 
-  // }
+  def moveTwo: List[(List[Part], Floor)] =
+    moveOne.flatMap({
+      case (List(x), Floor(xs)) =>
+        removeOne(xs).map({
+          case (y, ys) => (List(x, y), Floor(ys))
+        })
+    })
 }
 
 // Represents the state of the puzzle, i.e. all floors and elevator location
@@ -48,14 +42,14 @@ case class State(
   // floor.
   def normalize = {
     val floorToGenerators =
-      state.floors.zipWithIndex.flatMap({
+      floors.zipWithIndex.flatMap({
         case (xs, i) => xs.generators.map(x => (x.name, i))
       }).toMap
     val floorToChips =
-      state.floors.zipWithIndex.flatMap({
+      floors.zipWithIndex.flatMap({
         case (xs, i) => xs.chips.map(x => (x.name, i))
       }).toMap
-    val names = state.floors.flatMap(_.parts.map(_.name)).toSet
+    val names = floors.flatMap(_.parts.map(_.name)).toSet
     names.toList.map(x => (floorToGenerators(x), floorToChips(x))).sorted
   }
 }
