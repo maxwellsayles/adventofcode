@@ -9,16 +9,16 @@ case class Floor(parts: List[Part]) {
   def chips: List[Chip] = 
     for (Chip(x) <- parts) yield Chip(x)
 
-  def isValid =
+  def isValid: Boolean =
     if (generators.isEmpty) true
     else chips.forall(generators.contains)
 
-  def isEmpty = parts.isEmpty
+  def isEmpty: Boolean = parts.isEmpty
 
   def moveOne: List[(List[Part], Floor)] =
     removeOne(parts).map({
       case (x, xs) => (List(x), Floor(xs))
-    })
+    }).filter(_._2.isValid)
 
   def moveTwo: List[(List[Part], Floor)] =
     moveOne.flatMap({
@@ -26,21 +26,26 @@ case class Floor(parts: List[Part]) {
         removeOne(xs).map({
           case (y, ys) => (List(x, y), Floor(ys))
         })
-    })
+    }).filter(_._2.isValid)
 }
+
+case class NormalizedState(
+  elevator: Int,
+  pairs: List[(Int, Int)]
+)
 
 // Represents the state of the puzzle, i.e. all floors and elevator location
 case class State(  
   elevator: Int,
   floors: Array[Floor]
 ) {
-  def isValid = floors.forall(_.isValid)
+  def isValid: Boolean = floors.forall(_.isValid)
 
-  def isFinished = floors.take(3).forall(_.isEmpty)
+  def isFinished: Boolean = floors.take(3).forall(_.isEmpty)
 
   // The normalized state is the set of pairsmatching chips and generators by
   // floor.
-  def normalize = {
+  def normalize: NormalizedState = {
     val floorToGenerators =
       floors.zipWithIndex.flatMap({
         case (xs, i) => xs.generators.map(x => (x.name, i))
@@ -50,7 +55,8 @@ case class State(
         case (xs, i) => xs.chips.map(x => (x.name, i))
       }).toMap
     val names = floors.flatMap(_.parts.map(_.name)).toSet
-    names.toList.map(x => (floorToGenerators(x), floorToChips(x))).sorted
+    val pairs = names.toList.map(x => (floorToGenerators(x), floorToChips(x))).sorted
+    NormalizedState(elevator, pairs)
   }
 }
 
@@ -59,7 +65,7 @@ case class Solver(
   stepCount: Int,
   inputs: List[State],
   outputs: List[State],
-  visited: Set[State]
+  visited: Set[NormalizedState]
 ) {
   def step: Option[Int] = {
     (inputs, outputs) match {
@@ -69,12 +75,13 @@ case class Solver(
         Solver(stepCount + 1, outputs.reverse, List(), visited).step
 
       case (hd::tl, _) => {
+        val normalized = hd.normalize
         if (hd.isFinished) Some(stepCount)
-        else if (!hd.isValid || visited.contains(hd))
+        else if (!hd.isValid || visited.contains(normalized))
           Solver(stepCount, tl, outputs, visited).step
         else {
           // WIP: Implement core logic
-          Solver(stepCount, tl, outputs, visited + hd).step
+          Solver(stepCount, tl, outputs, visited + normalized).step
         }
       }
     }
