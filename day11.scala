@@ -1,16 +1,25 @@
 sealed abstract trait Part { def name: Char }
-case class Generator(name: Char) extends Part
-case class Chip(name: Char) extends Part
+
+case class Generator(name: Char) extends Part {
+  override def toString: String = name.toUpper.toString
+}
+
+case class Chip(name: Char) extends Part {
+  override def toString: String = name.toLower.toString
+}
 
 case class Floor(parts: List[Part]) {
-  def generators: List[Generator] = 
+  override def toString: String = parts.mkString("")
+
+  lazy val generators: List[Generator] = 
     for (Generator(x) <- parts) yield Generator(x)
 
-  def chips: List[Chip] = 
+  lazy val chips: List[Chip] = 
     for (Chip(x) <- parts) yield Chip(x)
 
-  def isValid: Boolean =
-    generators.isEmpty || chips.forall(generators.contains)
+  lazy val isValid: Boolean =
+    generators.isEmpty ||
+    chips.forall(c => generators.contains(Generator(c.name)))
 
   def isEmpty: Boolean = parts.isEmpty
 
@@ -38,13 +47,18 @@ case class State(
   elevator: Int,
   floors: Array[Floor]
 ) {
+  override def toString: String = {
+    val floorStr = s"'${floors.map(_.toString).mkString(", ")}'"
+    s"State(${elevator}, ${floorStr})"
+  }
+
   def isValid: Boolean = floors.forall(_.isValid)
 
   def isFinished: Boolean = floors.take(3).forall(_.isEmpty)
 
   // The normalized state is the set of pairsmatching chips and generators by
   // floor.
-  def normalized: NormalizedState = {
+  lazy val normalized: NormalizedState = {
     val floorToGenerators =
       floors.zipWithIndex.flatMap({
         case (xs, i) => xs.generators.map(x => (x.name, i))
@@ -56,6 +70,19 @@ case class State(
     val names = floors.flatMap(_.parts.map(_.name)).toSet
     val pairs = names.toList.map(x => (floorToGenerators(x), floorToChips(x))).sorted
     NormalizedState(elevator, pairs)
+  }
+
+  def updated(
+    newFloorNumber: Int,
+    elevatorParts: List[Part],
+    oldFloorNumber: Int,
+    updatedOldFloor: Floor
+  ): State = {
+    val newParts = floors(newFloorNumber).parts ::: elevatorParts
+    val newFloors = floors
+      .updated(newFloorNumber, Floor(newParts))
+      .updated(oldFloorNumber, updatedOldFloor)
+    State(newFloorNumber, newFloors)
   }
 }
 
@@ -74,13 +101,32 @@ case class Solver(
         Solver(stepCount + 1, outputs.reverse, List(), visited).step
 
       case (hd::tl, _) => {
-        val normalized = hd.normalized
         if (hd.isFinished) Some(stepCount)
-        else if (!hd.isValid || visited.contains(normalized))
-          Solver(stepCount, tl, outputs, visited).step
         else {
-          // WIP: Implement core logic
-          Solver(stepCount, tl, outputs, visited + normalized).step
+          val normalized = hd.normalized
+          if (visited.contains(normalized))
+            Solver(stepCount, tl, outputs, visited).step
+          else {
+            val floor = hd.floors(hd.elevator)
+            val moves = floor.moveOne ::: floor.moveTwo
+            val nextStates = hd.elevator match {
+              case 0 => moves.map({
+                case (elevatorParts, floor) =>
+                  hd.updated(1, elevatorParts, 0, floor)
+              })
+              case 3 => moves.map({
+                case (elevatorParts, floor) =>
+                  hd.updated(2, elevatorParts, 3, floor)
+              })
+              // WIP: Implement for other floors
+            }
+            val validNextState = nextStates
+              .filter(_.isValid)
+              .filter(state => !visited.contains(state.normalized))
+
+            // WIP
+            Solver(stepCount, tl, outputs, visited + normalized).step
+          }
         }
       }
     }
@@ -102,4 +148,6 @@ def initState: State = {
   State(0, Array(floor1, floor2, floor3, floor4))
 }
 
+println(initState)
 println(initState.normalized)
+initState.floors.foreach(floor => println(floor.moveOne))
