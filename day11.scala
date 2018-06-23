@@ -44,7 +44,7 @@ case class State(
 
   // The normalized state is the set of pairsmatching chips and generators by
   // floor.
-  def normalize: NormalizedState = {
+  def normalized: NormalizedState = {
     val floorToGenerators =
       floors.zipWithIndex.flatMap({
         case (xs, i) => xs.generators.map(x => (x.name, i))
@@ -74,7 +74,7 @@ case class Solver(
         Solver(stepCount + 1, outputs.reverse, List(), visited).step
 
       case (hd::tl, _) => {
-        val normalized = hd.normalize
+        val normalized = hd.normalized
         if (hd.isFinished) Some(stepCount)
         else if (!hd.isValid || visited.contains(normalized))
           Solver(stepCount, tl, outputs, visited).step
@@ -102,4 +102,4 @@ def initState: State = {
   State(0, Array(floor1, floor2, floor3, floor4))
 }
 
-println(initState.normalize)
+println(initState.normalized)
