@@ -10,8 +10,7 @@ case class Floor(parts: List[Part]) {
     for (Chip(x) <- parts) yield Chip(x)
 
   def isValid: Boolean =
-    if (generators.isEmpty) true
-    else chips.forall(generators.contains)
+    generators.isEmpty || chips.forall(generators.contains)
 
   def isEmpty: Boolean = parts.isEmpty
 
