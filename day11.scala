@@ -114,18 +114,38 @@ case class Solver(
                 case (elevatorParts, floor) =>
                   hd.updated(1, elevatorParts, 0, floor)
               })
+              case 1 => {
+                val ups = moves.map({
+                  case (elevatorParts, floor) =>
+                    hd.updated(2, elevatorParts, 1, floor)
+                })
+                val downs = moves.map({
+                  case (elevatorParts, floor) =>
+                    hd.updated(0, elevatorParts, 1, floor)
+                })
+                ups ::: downs
+              }
+              case 2 => {
+                val ups = moves.map({
+                  case (elevatorParts, floor) =>
+                    hd.updated(3, elevatorParts, 2, floor)
+                })
+                val downs = moves.map({
+                  case (elevatorParts, floor) =>
+                    hd.updated(1, elevatorParts, 2, floor)
+                })
+                ups ::: downs
+              }
               case 3 => moves.map({
                 case (elevatorParts, floor) =>
                   hd.updated(2, elevatorParts, 3, floor)
               })
-              // WIP: Implement for other floors
             }
-            val validNextState = nextStates
+            val validNextStates = nextStates
               .filter(_.isValid)
               .filter(state => !visited.contains(state.normalized))
 
-            // WIP
-            Solver(stepCount, tl, outputs, visited + normalized).step
+            Solver(stepCount, tl, outputs ::: validNextStates, visited + normalized).step
           }
         }
       }
@@ -151,3 +171,6 @@ def initState: State = {
 println(initState)
 println(initState.normalized)
 initState.floors.foreach(floor => println(floor.moveOne))
+
+val solver = Solver(0, List(initState), List(), Set())
+println(solver.step)
