@@ -44,7 +44,8 @@ def step(program: Array[String], state: State): State = {
   }
 }
 
-val initState = State(Map('a' -> 0, 'b' -> 0, 'c' -> 0, 'd' -> 0), 0)
+//val initState = State(Map('a' -> 0, 'b' -> 0, 'c' -> 0, 'd' -> 0), 0)
+val initState = State(Map('a' -> 0, 'b' -> 0, 'c' -> 1, 'd' -> 0), 0)
 
 def solve(state: State): State = {
   if (state.ip >= input.size)
