@@ -32,11 +32,16 @@ case class Floor(parts: List[Part]) {
     moveOne.flatMap({
       case (List(x), Floor(xs)) =>
         removeOne(xs).map({
-          case (y, ys) => (List(x, y), Floor(ys))
+          case (y, ys) => {
+            val elevatorParts = if (x.name < y.name) List(x, y) else List(y, x)
+            (elevatorParts, Floor(ys))
+          }
         })
-    }).filter(_._2.isValid)
+    }).filter(_._2.isValid).distinct
 }
 
+// Represents and equivalence class of states, i.e. the elevator location and
+// the floor number for pairs of generators and chips, agnostic of their names.
 case class NormalizedState(
   elevator: Int,
   pairs: List[(Int, Int)]
@@ -48,7 +53,7 @@ case class State(
   floors: Array[Floor]
 ) {
   override def toString: String = {
-    val floorStr = s"'${floors.map(_.toString).mkString(", ")}'"
+    val floorStr = floors.mkString(", ")
     s"State(${elevator}, ${floorStr})"
   }
 
@@ -56,7 +61,7 @@ case class State(
 
   def isFinished: Boolean = floors.take(3).forall(_.isEmpty)
 
-  // The normalized state is the set of pairsmatching chips and generators by
+  // The normalized state is the set of pairs matching chips and generators by
   // floor.
   lazy val normalized: NormalizedState = {
     val floorToGenerators =
@@ -84,6 +89,15 @@ case class State(
       .updated(oldFloorNumber, updatedOldFloor)
     State(newFloorNumber, newFloors)
   }
+
+  def moved(
+    moves: List[(List[Part], Floor)],
+    dstFloorNumber: Int,
+    srcFloorNumber: Int
+  ): List[State] = moves.map({
+    case (elevatorParts, floor) =>
+      updated(dstFloorNumber, elevatorParts, srcFloorNumber, floor)
+  })
 }
 
 // Represents the state of the solver.
@@ -93,64 +107,34 @@ case class Solver(
   outputs: List[State],
   visited: Set[NormalizedState]
 ) {
-  def step: Option[Int] = {
-    (inputs, outputs) match {
-      case (List(), List()) => None
+  def isFinished: Boolean = !inputs.isEmpty && inputs.head.isFinished
 
-      case (List(), _) =>
-        Solver(stepCount + 1, outputs.reverse, List(), visited).step
-
-      case (hd::tl, _) => {
-        if (hd.isFinished) Some(stepCount)
-        else {
-          val normalized = hd.normalized
-          if (visited.contains(normalized))
-            Solver(stepCount, tl, outputs, visited).step
-          else {
-            val floor = hd.floors(hd.elevator)
-            val moves = floor.moveOne ::: floor.moveTwo
-            val nextStates = hd.elevator match {
-              case 0 => moves.map({
-                case (elevatorParts, floor) =>
-                  hd.updated(1, elevatorParts, 0, floor)
-              })
-              case 1 => {
-                val ups = moves.map({
-                  case (elevatorParts, floor) =>
-                    hd.updated(2, elevatorParts, 1, floor)
-                })
-                val downs = moves.map({
-                  case (elevatorParts, floor) =>
-                    hd.updated(0, elevatorParts, 1, floor)
-                })
-                ups ::: downs
-              }
-              case 2 => {
-                val ups = moves.map({
-                  case (elevatorParts, floor) =>
-                    hd.updated(3, elevatorParts, 2, floor)
-                })
-                val downs = moves.map({
-                  case (elevatorParts, floor) =>
-                    hd.updated(1, elevatorParts, 2, floor)
-                })
-                ups ::: downs
-              }
-              case 3 => moves.map({
-                case (elevatorParts, floor) =>
-                  hd.updated(2, elevatorParts, 3, floor)
-              })
-            }
-            val validNextStates = nextStates
-              .filter(_.isValid)
-              .filter(state => !visited.contains(state.normalized))
-
-            Solver(stepCount, tl, outputs ::: validNextStates, visited + normalized).step
-          }
+  def step: Solver =
+    if (inputs.isEmpty)
+      Solver(stepCount + 1, outputs, List(), visited)
+    else {
+      val hd = inputs.head
+      val normalized = hd.normalized
+      if (visited.contains(normalized))
+        Solver(stepCount, inputs.tail, outputs, visited)
+      else {
+        val floor = hd.floors(hd.elevator)
+        val moves = floor.moveOne ::: floor.moveTwo
+        val nextStates = hd.elevator match {
+          case 0 => hd.moved(moves, 1, 0)
+          case 1 => hd.moved(moves, 0, 1) ::: hd.moved(moves, 2, 1)
+          case 2 => hd.moved(moves, 1, 2) ::: hd.moved(moves, 3, 2)
+          case 3 => hd.moved(moves, 2, 3)
         }
+        val validNextStates = nextStates
+          .filter(_.isValid)
+          .filter(state => !visited.contains(state.normalized))
+
+        val newOutputs = outputs ::: validNextStates
+        val newVisited = visited + normalized
+        Solver(stepCount, inputs.tail, newOutputs, newVisited)
       }
     }
-  }
 }
 
 def removeOne[T](xs: List[T]): List[(T, List[T])] =
@@ -160,6 +144,16 @@ def removeOne[T](xs: List[T]): List[(T, List[T])] =
       .map({case (x, y) => x ::: y})
   )
 
+// This is the example input
+// def initState: State = {
+//   val floor1 = Floor(List(Chip('h'), Chip('l')))
+//   val floor2 = Floor(List(Generator('h')))
+//   val floor3 = Floor(List(Generator('l')))
+//   val floor4 = Floor(List())
+//   State(0, Array(floor1, floor2, floor3, floor4))
+// }
+
+// This is the puzzle input.
 def initState: State = {
   val floor1 = Floor(List(Generator('s'), Generator('p'), Chip('s'), Chip('p')))
   val floor2 = Floor(List(Generator('t'), Generator('r'), Chip('r'), Generator('c'), Chip('c')))
@@ -168,9 +162,13 @@ def initState: State = {
   State(0, Array(floor1, floor2, floor3, floor4))
 }
 
-println(initState)
-println(initState.normalized)
-initState.floors.foreach(floor => println(floor.moveOne))
+def solve(solver: Solver): Int = {
+  if (solver.isFinished)
+    solver.stepCount
+  else
+    solve(solver.step)
+}
 
-val solver = Solver(0, List(initState), List(), Set())
-println(solver.step)
+val initSolver = Solver(0, List(initState), List(), Set())
+println(solve(initSolver))
+
