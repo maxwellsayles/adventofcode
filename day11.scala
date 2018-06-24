@@ -153,9 +153,18 @@ def removeOne[T](xs: List[T]): List[(T, List[T])] =
 //   State(0, Array(floor1, floor2, floor3, floor4))
 // }
 
-// This is the puzzle input.
+// This is the puzzle input for part 1.
+// def initState: State = {
+//   val floor1 = Floor(List(Generator('s'), Generator('p'), Chip('s'), Chip('p')))
+//   val floor2 = Floor(List(Generator('t'), Generator('r'), Chip('r'), Generator('c'), Chip('c')))
+//   val floor3 = Floor(List(Chip('t')))
+//   val floor4 = Floor(List())
+//   State(0, Array(floor1, floor2, floor3, floor4))
+// }
+
+// This is the puzzle input for part 2.
 def initState: State = {
-  val floor1 = Floor(List(Generator('s'), Generator('p'), Chip('s'), Chip('p')))
+  val floor1 = Floor(List(Generator('s'), Generator('p'), Chip('s'), Chip('p'), Generator('d'), Chip('d'), Generator('e'), Chip('e')))
   val floor2 = Floor(List(Generator('t'), Generator('r'), Chip('r'), Generator('c'), Chip('c')))
   val floor3 = Floor(List(Chip('t')))
   val floor4 = Floor(List())
