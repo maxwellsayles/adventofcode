@@ -49,3 +49,12 @@ def solve(state: State): Int = {
 // Start at 1, 1. Go to 31, 39.
 val initState = State(0, Set((1, 1)), Set())
 println(solve(initState))
+
+def solve2(state: State): Int = {
+  if (state.stepCount == 50)
+    state.visited.size + state.positions.size
+  else
+    solve2(state.step)
+}
+
+println(solve2(initState))
