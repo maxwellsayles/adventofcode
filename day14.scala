@@ -17,11 +17,11 @@ case class MD5String(private val v: String) {
   lazy val has3: Option[Char] = {
     if (s.isEmpty) None
     def loop(i: Int, c: Char, cs: List[Char]): Option[Char] =
-      if (cs.isEmpty) None
-      else if (i == 2 && cs.head == c) Some(c)
+      if (i == 3) Some(c)
+      else if (cs.isEmpty) None
       else if (cs.head == c) loop(i + 1, c, cs.tail)
       else loop(1, cs.head, cs.tail)
-    loop(1, s(0), s.toList.tail)
+    loop(1, s.head, s.toList.tail)
   }
 
   lazy val fives: Set[Char] = {
