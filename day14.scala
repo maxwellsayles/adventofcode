@@ -27,14 +27,13 @@ case class MD5String(private val v: String) {
   lazy val fives: Set[Char] = {
     if (s.isEmpty) Set()
     val cs = s.toList
-    cs.tail.foldLeft((1, cs.head, Set[Char]()))(
-      (acc: (Int, Char, Set[Char]), c: Char) => {
-        val (ii, cc, ss) = acc
+    cs.tail.foldLeft((1, cs.head, Set[Char]()))({
+      case ((ii, cc, ss), c) => {
         if (ii == 4 && c == cc) (ii + 1, cc, ss + cc)
         else if (c == cc) (ii + 1, cc, ss)
         else (1, c, ss)
       }
-    )._3
+    })._3
   }
 }
 
