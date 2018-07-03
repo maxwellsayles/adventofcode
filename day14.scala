@@ -1,18 +1,21 @@
+import java.security.MessageDigest
+import javax.xml.bind.DatatypeConverter.printHexBinary
 import scala.collection.immutable.Queue
 
 val input = "yjdafjpo"
 //val input = "abc"
 
-val md5Instance = java.security.MessageDigest.getInstance("MD5")
+def md5string(s: String): String =
+  printHexBinary(MessageDigest.getInstance("MD5").digest(s.getBytes)).toLowerCase
 
-def md5(bs: Array[Byte]): Array[Byte] = {
-  md5Instance.reset()
-  md5Instance.update(bs)
-  md5Instance.digest
-}
+def md5string2016(bs: String): String =
+  0.to(2016).foldLeft(bs)((acc, _) => {
+    md5string(acc)
+  })
 
 case class MD5String(private val v: String) {
-  lazy val s: String = md5(v.getBytes).map(x => "%02x".format(x)).mkString
+//  lazy val s: String = md5string(v)
+  lazy val s: String = md5string2016(v)
 
   lazy val has3: Option[Char] = {
     if (s.isEmpty) None
