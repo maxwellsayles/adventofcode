@@ -1,12 +1,21 @@
 import java.security.MessageDigest
-import javax.xml.bind.DatatypeConverter.printHexBinary
 import scala.collection.immutable.Queue
+import scala.collection.mutable.StringBuilder
 
 val input = "yjdafjpo"
 //val input = "abc"
 
-def md5string(s: String): String =
-  printHexBinary(MessageDigest.getInstance("MD5").digest(s.getBytes)).toLowerCase
+val byteToHex: String = "0123456789abcdef"
+
+def md5string(s: String): String = {
+  val digest = MessageDigest.getInstance("MD5").digest(s.getBytes)
+  val sb = new StringBuilder()
+  digest.foreach(x => {
+    sb += byteToHex((x >>> 4) & 0xF)
+    sb += byteToHex(x & 0xF)
+  })
+  sb.toString
+}
 
 def md5string2016(bs: String): String =
   0.to(2016).foldLeft(bs)((acc, _) => {
