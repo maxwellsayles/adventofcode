@@ -1,5 +1,6 @@
 val initDiscs: List[(Int, Int)] =
-  List((5, 2), (13, 7), (17, 10), (3, 2), (19, 9), (7, 0))
+//  List((5, 2), (13, 7), (17, 10), (3, 2), (19, 9), (7, 0))
+  List((5, 2), (13, 7), (17, 10), (3, 2), (19, 9), (7, 0), (11, 0))
 
 val (initSlots, initPositions) = initDiscs.unzip
 
