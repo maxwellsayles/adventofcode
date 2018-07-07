@@ -1,5 +1,6 @@
 val input: String = "10111011111001111"
-val diskSize: Int = 272
+//val diskSize: Int = 272
+val diskSize: Int = 35651584
 
 // Example input
 // val input: String = "10000"
