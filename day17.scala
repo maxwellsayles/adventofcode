@@ -44,6 +44,14 @@ def solve(states: Queue[State]): String = {
   else solve(states.tail ++ states.head.moves)
 }
 
+def solve2(states: Queue[State], longest: Int): Int = {
+  if (states.isEmpty) longest
+  else if (states.head.isFinished)
+    solve2(states.tail, states.head.pathString.length)
+  else solve2(states.tail ++ states.head.moves, longest)
+}
+
 def initState = State(0, 0, List())
 
 println(solve(Queue(initState)))
+println(solve2(Queue(initState), 0))
