@@ -1,5 +1,6 @@
 val input = "......^.^^.....^^^^^^^^^...^.^..^^.^^^..^.^..^.^^^.^^^^..^^.^.^.....^^^^^..^..^^^..^^.^.^..^^..^^^.."
-val inputRowCount = 40
+//val inputRowCount = 40
+val inputRowCount = 400000
 
 def nextRow(row: String): String = {
   ("." + row + ".")
