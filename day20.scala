@@ -11,3 +11,16 @@ def solve(x: Long, ranges: List[(Long, Long)]): Long = {
 }
 
 println(solve(0, input))
+
+
+def allowed(c: Long, x: Long, ranges: List[(Long, Long)]): Long = {
+  if (ranges.isEmpty) c
+  else {
+    val (s, t) = ranges.head
+    val x2 = x.max(t + 1)
+    val c2 = c + 0L.max(s - x)
+    allowed(c2, x2, ranges.tail)
+  }
+}
+
+print(allowed(0, 0, input))
