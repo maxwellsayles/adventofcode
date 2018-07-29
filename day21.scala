@@ -56,4 +56,8 @@ def step(s: String, action: String): String = {
   }
 }
 
-println(input.foldLeft(start)(step))
+def solve(s: String): String = input.foldLeft(s)(step)
+
+println(solve(start))
+
+println(start.permutations.filter(s => solve(s) == "fbgdceah").toList.head)
