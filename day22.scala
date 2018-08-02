@@ -17,12 +17,25 @@ def isViable(sx: Int, sy: Int, tx: Int, ty: Int): Boolean = {
     tused + grid(sx, sy).used <= tsize
 }
 
+def isNeighbor(sx: Int, sy: Int, tx: Int, ty: Int): Boolean = {
+  (((sx == tx + 1 || sx == tx - 1) && sy == ty) ||
+    ((sy == ty + 1 || sy == ty - 1) && sx == tx))
+}
+
 val pairs = for (
   sx <- 0 to maxx;
   sy <- 0 to maxy;
   tx <- 0 to maxx;
   ty <- 0 to maxy;
-  if grid(sx, sy).used != 0 && !(sx == tx && sy == ty) && isViable(sx, sy, tx, ty))
+  if grid(sx, sy).used != 0 && !(sx == tx && sy == ty) && isViable(sx, sy, tx, ty) && isNeighbor(sx, sy, tx, ty))
     yield (sx, sy, tx, ty)
 
-println(pairs.size)
+//println(pairs.size)
+
+pairs.foreach(println)
+
+
+// Track payload and empty block.
+// Move neighbors into empty block.
+// Use a SortedSet for the state queue.
+// dist(payload, origin) is priority, then dist(empty, payload), then dist(empty, origin), then x, then y
