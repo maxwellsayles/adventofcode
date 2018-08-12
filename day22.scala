@@ -85,8 +85,25 @@ case class GridState(
 }
 
 case class SolverState(
-  visited: Set[(Int, Int)]
+  visited: Set[((Int, Int), (Int, Int))],
+  inputs: List[GridState],
+  outputs: List[GridState]
 )
+
+def solve(state: SolverState): Int = {
+  state.inputs match {
+    case List() => solve(SolverState(state.visited, state.outputs, List()))
+    case hd::tl => {
+      if (hd.isFinished)
+        hd.steps
+      else {
+        val nextStates = hd.nextStates
+        val newVisited = state.visited + ((hd.goalPos, hd.emptyPos))
+        solve(SolverState(newVisited, tl, state.outputs ::: nextStates))
+      }
+    }
+  }
+}
 
 val initGoalPos = (maxx, 0)
 val initEmptyPos =
@@ -97,3 +114,7 @@ val initEmptyPos =
   ) yield (x, y)).head
 val initGridState = GridState(initGrid, initGoalPos, initEmptyPos, 0)
 
+val initVisited = Set((initGoalPos, initEmptyPos))
+val initSolverState = SolverState(initVisited, List(initGridState), List())
+
+println(solve(initSolverState))
