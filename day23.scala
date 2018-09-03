@@ -5,6 +5,24 @@ case class State(
   ip: Int
 )
 
+def isMultiply: Boolean = {
+  program(4) == "cpy b c" &&
+  program(5) == "inc a" &&
+  program(6) == "dec c" &&
+  program(7) == "jnz c -2" &&
+  program(8) == "dec d" &&
+  program(9) == "jnz d -5"
+}
+
+
+def multiply(state: State): State = {
+  val a = state.regs('a')
+  val b = state.regs('b')
+  val d = state.regs('d')
+  val newA = a + b * d
+  State(state.regs + ('a' -> newA), state.ip + 6)
+}
+
 def step(state: State): State = {
   val cpy = """cpy (-?\d+|\w) (\w+)""".r
   val inc = """inc (\w+)""".r
@@ -51,6 +69,11 @@ def step(state: State): State = {
         }
       }
     }
+  }
+
+  if (state.ip == 4 && isMultiply) {
+    // Special case some statements that are the equivalent of a multiply.
+    return multiply(state)
   }
 
   program(state.ip) match {
@@ -124,7 +147,8 @@ def step(state: State): State = {
   }
 }
 
-val initState = State(Map('a' -> 7, 'b' -> 0, 'c' -> 0, 'd' -> 0), 0)
+//val initState = State(Map('a' -> 7, 'b' -> 0, 'c' -> 0, 'd' -> 0), 0)
+val initState = State(Map('a' -> 12, 'b' -> 0, 'c' -> 0, 'd' -> 0), 0)
 
 def solve(state: State): State = {
   if (state.ip >= program.size)
