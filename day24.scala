@@ -34,7 +34,13 @@ case class Solver(
   stepCount: Int,
   visited: Set[State]
 ) {
-  def isFinished: Boolean = !inputs.isEmpty && inputs.head.isFinished
+  // def isFinished: Boolean = !inputs.isEmpty && inputs.head.isFinished
+  def isFinished: Boolean = {
+    !inputs.isEmpty && {
+      val head = inputs.head
+      head.isFinished && head.x == initState.x && head.y == initState.y
+    }
+  }
 
   def step: Solver = {
     if (inputs.isEmpty) {
