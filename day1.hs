@@ -9,3 +9,8 @@ main = do
     map (digitToInt . fst) $
     filter (uncurry (==)) $
     zip input (tail $ cycle input)
+  print $
+    sum $
+    map (digitToInt . fst) $
+    filter (uncurry (==)) $
+    zip input (drop (length input `div` 2) $ cycle input)
