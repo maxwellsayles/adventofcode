@@ -3,11 +3,11 @@ import Control.Arrow
 
 main :: IO ()
 main = do
-  input <- sum .
+  print =<<
+    sum .
     map (uncurry (-) .
          (maximum &&& minimum) .
-         map (read :: String -> Integer) .
+         map read .
          words) .
     lines <$>
     readFile "day2.txt"
-  print input
