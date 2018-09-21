@@ -11,3 +11,5 @@ stepCount n =
 main :: IO ()
 main = do
   print $ stepCount input
+
+  -- Part 2 could be looked up from https://oeis.org/A141481/b141481.txt
