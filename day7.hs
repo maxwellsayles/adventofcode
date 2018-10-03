@@ -65,6 +65,11 @@ maybeImbalanced supportMap stackWeightMap name =
     1 -> Nothing
     2 -> Just (fst $ head $ groups !! 0, snd $ head $ groups !! 1)
 
+solve2 :: M.Map Text [Text] -- nodes supported by a node
+       -> M.Map Text Int -- weight of the node
+       -> M.Map Text Int -- weight the node supports
+       -> Text -- root node
+       -> Int -- different of the imbalanced node
 solve2 supportMap weightMap stackWeightMap root =
   helper root 0
   where
