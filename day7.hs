@@ -71,7 +71,7 @@ solve2 :: M.Map Text [Text] -- nodes supported by a node
        -> Text -- root node
        -> Int -- different of the imbalanced node
 solve2 supportMap weightMap stackWeightMap root =
-  helper root 0
+  helper root undefined
   where
     helper name v =
       case maybeImbalanced supportMap stackWeightMap name of
