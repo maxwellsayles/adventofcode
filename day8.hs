@@ -50,4 +50,4 @@ main :: IO ()
 main = do
   instructions <- map toInstruction . lines <$> readFile "day8.txt"
   let solution = foldl' evalInst M.empty instructions
-  print $ maximum $ map snd $ M.toList solution
+  print $ maximum $ M.elems solution
