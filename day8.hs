@@ -51,3 +51,6 @@ main = do
   instructions <- map toInstruction . lines <$> readFile "day8.txt"
   let solution = foldl' evalInst M.empty instructions
   print $ maximum $ M.elems solution
+
+  let solutions = scanl evalInst M.empty instructions
+  print $ maximum $ concat $ map M.elems solutions
