@@ -12,7 +12,7 @@ stepBuffer :: Int -> Int -> [Int] -> [Int]
 stepBuffer pos len xs =
   let n = length xs
       xs' = take n $ drop pos $ cycle xs
-      ys = (reverse $ take len xs') ++ drop len xs'  
+      ys = (reverse $ take len xs') ++ drop len xs'
   in  take n $ drop (n - pos) $ cycle ys
 
 stepState :: State -> Int -> State
