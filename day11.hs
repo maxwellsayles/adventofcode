@@ -1,4 +1,5 @@
 import Control.Applicative
+import Control.Arrow
 import Data.List (foldl', groupBy)
 
 splitCSV :: String -> [String]
@@ -23,6 +24,9 @@ move (x, y) "s" = (x, y + 1)
 main :: IO ()
 main = do
   input <- splitCSV <$> readFile "day11.txt"
---  let input = splitCSV "se,se,nw,nw"
+
   let pos = foldl' move (0, 0) input
-  print pos
+  print $ uncurry max pos
+
+  let allPos = scanl move (0, 0) input
+  print $ uncurry max $ maximum *** maximum $ unzip allPos
