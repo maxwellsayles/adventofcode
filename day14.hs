@@ -1,7 +1,9 @@
-import Data.Bits (popCount, xor)
+import Data.Bits (popCount, testBit, xor)
 import Data.Char (ord)
 import Data.Foldable (foldl')
 import Text.Printf (printf)
+
+import qualified Data.Vector as V
 
 data State = State { statePos :: Int
                    , stateSkip :: Int
@@ -44,8 +46,24 @@ hashString = concatMap toHex . hashBytes
 hashPopCount :: String -> Int
 hashPopCount = sum . map popCount . hashBytes
 
+type Grid = V.Vector (V.Vector Int)
+
+grid :: String -> Grid
+grid input =
+  let row i = input ++ "-" ++ show i
+  in V.fromList $ map (V.fromList . hashBytes . row) [0..127]
+
+isSet :: Int -> Int -> Grid -> Bool
+isSet x y g =
+  let bx = x `div` 8
+      bi = x `mod` 8
+      b = (g V.! y) V.! bx
+  in testBit b bi
+
 main :: IO ()
 main = do
   let input = "amgozmfv"
   let row i = input ++ "-" ++ show i
   print $ sum $ map (hashPopCount . row) [0..127]
+  let g = grid input
+  print $ length $ filter id [isSet x y g | x <- [0..127], y <- [0..127]]
