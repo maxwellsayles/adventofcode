@@ -65,17 +65,13 @@ isSet x y g
   | otherwise = False
 
 solve :: Grid -> Int
-solve g =
-  let finalSet = foldr unionNeighbor initSet coords
-  in  IDS.disjointSetSize finalSet
+solve g = IDS.disjointSetSize finalSet
   where
-    coords = [(x, y) | x <- [0..127], y <- [0..127]]
-    initSet = foldr (IDS.insert . uncurry val) IDS.empty $
-              filter (\(x, y) -> isSet x y g) coords      
+    coords = [(x, y) | x <- [0..127], y <- [0..127], isSet x y g]
+    initSet = foldr (IDS.insert . uncurry val) IDS.empty coords
+    finalSet = foldr unionNeighbor initSet coords
     val x y = y * 128 + x
-    unionNeighbor (x, y) ds
-      | not $ isSet x y g = ds
-      | otherwise = connect (-1) 0 $ connect 0 (-1) ds
+    unionNeighbor (x, y) ds = connect (-1) 0 $ connect 0 (-1) ds
       where connect dx dy ds =
               let x' = x + dx
                   y' = y + dy
