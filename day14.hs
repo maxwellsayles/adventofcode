@@ -70,14 +70,13 @@ solve g =
   in  IDS.disjointSetSize finalSet
   where
     coords = [(x, y) | x <- [0..127], y <- [0..127]]
-    initSet = foldr (\(x, y) -> IDS.insert (val x y)) IDS.empty coords      
+    initSet = foldr (IDS.insert . uncurry val) IDS.empty $
+              filter (\(x, y) -> isSet x y g) coords      
     val x y = y * 128 + x
     unionNeighbor (x, y) ds
       | not $ isSet x y g = ds
-      | otherwise =
-        let neighbors = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        in  foldr connect ds neighbors
-      where connect (dx, dy) ds =
+      | otherwise = connect (-1) 0 $ connect 0 (-1) ds
+      where connect dx dy ds =
               let x' = x + dx
                   y' = y + dy
               in  if isSet x' y' g
@@ -91,10 +90,10 @@ showGrid w h g =
 
 main :: IO ()
 main = do
-  let input = "flqrgnkx"
-  putStrLn $ showGrid 8 8 $ grid input
+  -- let input = "flqrgnkx"
+  -- putStrLn $ showGrid 8 8 $ grid input
 
-  -- let input = "amgozmfv"
-  -- let row i = input ++ "-" ++ show i
-  -- print $ sum $ map (hashPopCount . row) [0..127]
-  -- print $ solve $ grid input
+  let input = "amgozmfv"
+  let row i = input ++ "-" ++ show i
+  print $ sum $ map (hashPopCount . row) [0..127]
+  print $ solve $ grid input
