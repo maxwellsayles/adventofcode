@@ -3,6 +3,7 @@ import Data.Char (ord)
 import Data.Foldable (foldl')
 import Text.Printf (printf)
 
+import qualified Data.IntDisjointSet as IDS
 import qualified Data.Vector as V
 
 data State = State { statePos :: Int
@@ -54,16 +55,37 @@ grid input =
   in V.fromList $ map (V.fromList . hashBytes . row) [0..127]
 
 isSet :: Int -> Int -> Grid -> Bool
-isSet x y g =
-  let bx = x `div` 8
-      bi = x `mod` 8
-      b = (g V.! y) V.! bx
-  in testBit b bi
+isSet x y g
+  | x >= 0 && x <= 127 && y >= 0 && y <= 127 =
+    let bx = x `div` 8
+        bi = x `mod` 8
+        b = (g V.! y) V.! bx
+    in testBit b bi
+  | otherwise = False
+
+solve :: Grid -> Int
+solve g =
+  let finalSet = foldr unionNeighbor initSet coords
+  in  IDS.disjointSetSize finalSet
+  where
+    coords = [(x, y) | x <- [0..127], y <- [0..127]]
+    initSet = foldr (\(x, y) -> IDS.insert (val x y)) IDS.empty coords      
+    val x y = y * 128 + x
+    unionNeighbor (x, y) ds
+      | not $ isSet x y g = ds
+      | otherwise =
+        let neighbors = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        in  foldr connect ds neighbors
+      where connect (dx, dy) ds =
+              let x' = x + dx
+                  y' = y + dy
+              in  if isSet x' y' g
+                  then IDS.union (val x' y') (val x y) ds
+                  else ds
 
 main :: IO ()
 main = do
   let input = "amgozmfv"
   let row i = input ++ "-" ++ show i
   print $ sum $ map (hashPopCount . row) [0..127]
-  let g = grid input
-  print $ length $ filter id [isSet x y g | x <- [0..127], y <- [0..127]]
+  print $ solve $ grid input
