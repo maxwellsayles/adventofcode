@@ -1,3 +1,4 @@
+import Control.Monad (forM_)
 import Data.Bits (popCount, testBit, xor)
 import Data.Char (ord)
 import Data.Foldable (foldl')
@@ -58,7 +59,7 @@ isSet :: Int -> Int -> Grid -> Bool
 isSet x y g
   | x >= 0 && x <= 127 && y >= 0 && y <= 127 =
     let bx = x `div` 8
-        bi = x `mod` 8
+        bi = 7 - x `mod` 8
         b = (g V.! y) V.! bx
     in testBit b bi
   | otherwise = False
@@ -83,9 +84,17 @@ solve g =
                   then IDS.union (val x' y') (val x y) ds
                   else ds
 
+showGrid :: Int -> Int -> Grid -> String
+showGrid w h g =
+  let dot x y = if isSet x y g then '#' else '.'
+  in unlines $ [[dot x y | x <- [0 .. w - 1]] | y <- [0 .. h - 1]]
+
 main :: IO ()
 main = do
-  let input = "amgozmfv"
-  let row i = input ++ "-" ++ show i
-  print $ sum $ map (hashPopCount . row) [0..127]
-  print $ solve $ grid input
+  let input = "flqrgnkx"
+  putStrLn $ showGrid 8 8 $ grid input
+
+  -- let input = "amgozmfv"
+  -- let row i = input ++ "-" ++ show i
+  -- print $ sum $ map (hashPopCount . row) [0..127]
+  -- print $ solve $ grid input
