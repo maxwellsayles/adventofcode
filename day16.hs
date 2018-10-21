@@ -28,7 +28,18 @@ step xs (Exchange i j) =
 step xs (Partner a b) =
   map (\c -> if c == a then b else if c == b then a else c) xs
 
+dance :: String -> [Move] -> String
+dance = foldl' step
+
+period :: String -> [Move] -> Int
+period ps moves =
+  succ $ length $ takeWhile (/= ps) $ tail $ iterate (flip dance moves) ps
+
 main :: IO ()
 main = do
-  input <- tokenize <$> readFile "day16.txt"
-  putStrLn $ foldl' step ['a'..'p'] input
+  moves <- tokenize <$> readFile "day16.txt"
+  let initState = ['a'..'p']
+  putStrLn $ dance initState moves
+  let p = period initState moves
+      m = 10^9 `mod` p
+  putStrLn $ (!! m) $ iterate (flip dance moves) initState
