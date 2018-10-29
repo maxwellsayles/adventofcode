@@ -1,7 +1,6 @@
 import Control.Arrow (second)
 import Data.Char (isAlpha)
 import Data.Maybe (catMaybes)
-import Debug.Trace (trace)
 
 import qualified Data.Vector as V
 
@@ -48,7 +47,7 @@ path :: Grid -> State -> [State]
 path grid state@(State x y dx dy)
   | v == '+' = 
     let stateTurn = turn grid state
-    in state : stateTurn : path grid (step stateTurn)
+    in state : path grid (step stateTurn)
   | v == '|' || v == '-' || isAlpha v = state : path grid (step state)
   | otherwise = []
   where
@@ -61,10 +60,15 @@ isAlphaState grid (State x y _ _)
   where
     v = cell grid x y
 
+getXY :: State -> (Int, Int)
+getXY (State x y _ _) = (x, y)
+
 main :: IO ()
 main = do
   grid <- (V.fromList . map V.fromList . lines) `fmap` readFile "day19.txt"
   let startX = length $ takeWhile (\x -> grid V.! 0 V.! x == ' ') [0..]
   let state = State startX 0 0 1
-  putStrLn $ catMaybes $ map (isAlphaState grid) $ path grid state
-
+  let ps = path grid state
+  putStrLn $ catMaybes $ map (isAlphaState grid) ps
+  print $ length ps
+  
