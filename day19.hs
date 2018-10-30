@@ -1,4 +1,4 @@
-import Control.Arrow (second)
+import Control.Arrow (second, (&&&))
 import Data.Char (isAlpha)
 import Data.Maybe (catMaybes)
 
@@ -53,22 +53,12 @@ path grid state@(State x y dx dy)
   where
     v = cell grid x y
 
-isAlphaState :: Grid -> State -> Maybe Char
-isAlphaState grid (State x y _ _)
-  | isAlpha v = Just v
-  | otherwise = Nothing
-  where
-    v = cell grid x y
-
-getXY :: State -> (Int, Int)
-getXY (State x y _ _) = (x, y)
-
 main :: IO ()
 main = do
   grid <- (V.fromList . map V.fromList . lines) `fmap` readFile "day19.txt"
   let startX = length $ takeWhile (\x -> grid V.! 0 V.! x == ' ') [0..]
   let state = State startX 0 0 1
   let ps = path grid state
-  putStrLn $ catMaybes $ map (isAlphaState grid) ps
+  putStrLn $ filter isAlpha $ map (uncurry (cell grid) . (stateX &&& stateY)) ps
   print $ length ps
   
