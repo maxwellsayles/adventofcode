@@ -26,13 +26,19 @@ at time `t` and see if they collide.
 
 
 import Control.Applicative
-import Data.List (sortBy, sort, tails)
+import Data.List (groupBy, sortBy, sort, tails)
 import Data.Ord (comparing)
 
 import qualified Data.Set as S
 
 data Vector3 = Vector3 Int Int Int deriving (Eq, Ord, Show)
-data Particle = Particle Vector3 Vector3 Vector3 deriving (Eq, Ord, Show)
+data Particle = Particle Vector3 Vector3 Vector3 deriving (Show)
+
+instance Eq Particle where
+  Particle p1 _ _ == Particle p2 _ _ = p1 == p2
+
+instance Ord Particle where
+  Particle p1 _ _ `compare` Particle p2 _ _ = p1 `compare` p2
 
 vector3ToHeavy :: Vector3 -> [Int]
 vector3ToHeavy (Vector3 x y z) = reverse $ sort $ map abs [x, y, z]
@@ -101,12 +107,26 @@ collisions ps =
   filter (uncurry collide) $
   [(x, y) | (x:ys) <- tails ps, y <- ys]
 
+step :: Particle -> Particle
+step (Particle (Vector3 px py pz) (Vector3 vx vy vz) a@(Vector3 ax ay az)) =
+  let v = Vector3 (vx + ax) (vy + ay) (vz + az)
+      p = Vector3 (px + vx + ax) (py + vy + ay) (pz + vz + az)      
+  in Particle p v a
+
+removeCollisions :: [Particle] -> [Particle]
+removeCollisions = concat . filter (null . tail) . groupBy (==) . sort
+
+stepAll :: [Particle] -> [Particle]
+stepAll = map step
+
 main :: IO ()
 main = do
   input <- map parseLine . lines <$> readFile "day20.txt"
   print $ fst $ head $ sortBy (comparing snd) $ zip [0..] $
     map particleToSortedList input
 
-  let leftover = S.fromList input `S.difference` (S.fromList $ collisions input)
-  print $ S.size leftover
+  -- let leftover = S.fromList input `S.difference` (S.fromList $ collisions input)
+  -- print $ S.size leftover
+
+  mapM_ print $ map length $ iterate (removeCollisions . stepAll) $ removeCollisions input
   
