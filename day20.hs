@@ -26,6 +26,7 @@ at time `t` and see if they collide.
 
 import Control.Applicative
 import Control.Arrow
+import Data.Foldable (foldl')
 import Data.Function (on)
 import Data.List (groupBy, sortBy, sort, tails)
 import Data.Ord (comparing)
@@ -34,12 +35,6 @@ import qualified Data.Set as S
 
 data Vector3 = Vector3 Int Int Int deriving (Eq, Ord, Show)
 data Particle = Particle Vector3 Vector3 Vector3 deriving (Eq, Ord, Show)
-
--- instance Eq Particle where
---   Particle p1 _ _ == Particle p2 _ _ = p1 == p2
-
--- instance Ord Particle where
---   Particle p1 _ _ `compare` Particle p2 _ _ = p1 `compare` p2
 
 vector3ToHeavy :: Vector3 -> [Int]
 vector3ToHeavy (Vector3 x y z) = reverse $ sort $ map abs [x, y, z]
@@ -84,14 +79,29 @@ collideX (Particle (Vector3 p1 _ _) (Vector3 v1 _ _) (Vector3 a1 _ _))
       a2' = fromIntegral a2
   in collide1 (p1', v1', a1') (p2', v2', a2')
 
---collisions :: [Particle] -> [(Int, [Particle])]
+collisions :: [Particle] -> S.Set Particle
 collisions ps =
   let allPairs = [(x, y) | (x:ys) <- tails ps, y <- ys]
-      collideTimes =
+      collisionsByTime =
+        map ((fst . head) &&& (map snd)) $
+        groupBy ((==) `on` fst) $
+        sortBy (comparing fst) $
+        concatMap (\((p, q), ts) -> map (\t -> (t, (p, q))) ts) $
         filter (not . null . snd) $
         map (\((p, q), ts) -> ((p, q), filter (\t -> location p t == location q t) ts)) $
         map (id &&& (filter (> 0) . map round . uncurry collideX)) allPairs
-  in collideTimes
+  in foldl' stepCollisions S.empty $
+     map snd $
+     pairsToSet $
+     collisionsByTime
+  where
+    pairsToSet ps =
+      map (second S.fromList) $
+      map (second $ concatMap (\(x, y) -> [x, y])) ps
+
+    stepCollisions acc ps =
+      let ps' = ps `S.difference` acc
+      in if S.size ps' > 1 then acc `S.union` ps' else acc
 
 pos :: Particle -> (Int, Int, Int)
 pos (Particle (Vector3 x y z) _ _) = (x, y, z)
@@ -114,9 +124,5 @@ main = do
   print $ fst $ head $ sortBy (comparing snd) $ zip [0..] $
     map particleToSortedList input
 
-  print $ collisions input
-
-  -- let leftover = S.fromList input `S.difference` (S.fromList $ collisions input)
-  -- print $ S.size leftover
-
-  -- mapM_ print $ map length $ iterate (removeCollisions . stepAll) $ removeCollisions input
+  let ps = collisions input
+  print $ S.size (S.fromList input `S.difference` ps)
