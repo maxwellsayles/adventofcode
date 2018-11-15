@@ -86,10 +86,10 @@ collisions ps =
         map ((fst . head) &&& (map snd)) $
         groupBy ((==) `on` fst) $
         sortBy (comparing fst) $
-        concatMap (\((p, q), ts) -> map (\t -> (t, (p, q))) ts) $
-        filter (not . null . snd) $
-        map (\((p, q), ts) -> ((p, q), filter (\t -> location p t == location q t) ts)) $
-        map (id &&& (filter (> 0) . map round . uncurry collideX)) allPairs
+        filter (\(t, (p, q)) -> location p t == location q t) $
+        filter ((> 0) . fst) $
+        map (first round) $
+        [ (t, (p, q)) | (p, q) <- allPairs, t <- collideX p q ]
   in foldl' stepCollisions S.empty $
      map snd $
      pairsToSet $
