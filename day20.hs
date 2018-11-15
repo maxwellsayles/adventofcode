@@ -82,7 +82,7 @@ collideX (Particle (Vector3 p1 _ _) (Vector3 v1 _ _) (Vector3 a1 _ _))
       p2' = fromIntegral p2
       v2' = fromIntegral v2
       a2' = fromIntegral a2
-  in collide1 (p1', v1', a2') (p2', v2', a2')
+  in collide1 (p1', v1', a1') (p2', v2', a2')
 
 --collisions :: [Particle] -> [(Int, [Particle])]
 collisions ps =
