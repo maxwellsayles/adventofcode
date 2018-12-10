@@ -1,7 +1,6 @@
 import Control.Applicative
 import Control.Arrow
 import Data.List (nub)
-import Debug.Trace (trace)
 
 import qualified Data.Map as M
 
@@ -94,8 +93,7 @@ step :: Moves -> State -> State
 step moves state =
   let d = if length state `mod` 2 == 0 then 2 else 3
       blocks = partition d state
-  in trace (show blocks) $
-     melt $ map (moves M.!) blocks
+  in melt $ map (moves M.!) blocks
 
 countOn :: State -> Int
 countOn = length . filter (== '#')
