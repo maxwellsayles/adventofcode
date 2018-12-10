@@ -106,4 +106,5 @@ main = do
   input <- map (filter (\c -> c `elem` ".#")) . lines <$> readFile "day21.txt"
   let moves = parseInput input
   print $ countOn $ (!! 5) $ iterate (step moves) initState
+  print $ countOn $ (!! 18) $ iterate (step moves) initState
 
