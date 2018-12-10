@@ -51,11 +51,6 @@ chunk n xs = helper xs
   where helper [] = []
         helper xs = take n xs : helper (drop n xs)
 
-everyOther :: [a] -> [a]
-everyOther [] = []
-everyOther [x] = [x]
-everyOther (x:_:xs) = x : everyOther xs
-
 partition :: Int -> [a] -> [[a]]
 partition n xs =
   let d = isqrt $ length xs
