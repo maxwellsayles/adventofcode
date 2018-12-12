@@ -41,16 +41,13 @@ lookup :: Grid -> State -> Health
 lookup grid state = clean `fromMaybe` (M.lookup (pos state) grid)
 
 step :: Grid -> State -> (Grid, State)
-step grid state
-  | health == infected =
-      let state' = forward $ turnRight state
-      in  (grid', state')
-  | otherwise =
-      let state' = forward $ turnLeft state
-      in (grid', state')
+step grid state = (grid', state')
   where
-    health = lookup grid state
     grid' = flipHealth grid state
+    state'
+      | health == infected = forward $ turnRight state
+      | otherwise = forward $ turnLeft state
+    health = lookup grid state
 
 parseInput :: [String] -> Grid
 parseInput rows =
