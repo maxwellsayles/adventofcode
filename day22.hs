@@ -61,8 +61,12 @@ parseInput rows =
      zip [-height..height] $
      map (zip [-width..width]) rows
 
+isClean :: Grid -> State -> Bool
+isClean grid state = lookup grid state == clean
+
 main :: IO ()
 main = do
-  input <- lines `fmap` readFile "day22.txt"
-  print $ parseInput input
+  input <- (parseInput . lines) `fmap` readFile "day22.txt"
+  let walk = iterate (uncurry step) (input, initState)
+  print $ length $ filter (uncurry isClean) $ take 10000 walk
 
