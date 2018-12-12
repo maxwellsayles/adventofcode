@@ -53,10 +53,12 @@ parseInput :: [String] -> Grid
 parseInput rows =
   let height = length rows
       width = length $ head rows
+      h = height `div` 2
+      w = width `div` 2
   in M.fromList $
      concatMap (\(y, row) -> map (\(x, c) -> ((x, y), c)) row) $
-     zip [-height..height] $
-     map (zip [-width..width]) rows
+     zip [-h .. h] $
+     map (zip [-w .. w]) rows
 
 isClean :: Grid -> State -> Bool
 isClean grid state = lookup grid state == clean
