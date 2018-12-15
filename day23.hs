@@ -1,4 +1,3 @@
-import Control.Applicative
 import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
 
@@ -28,7 +27,7 @@ instance Read Instruction where
 data State = State { ip :: Int
                    , instructions :: V.Vector Instruction
                    , registers :: M.Map Char Int
-                   }
+                   } deriving Show
 
 tokenize :: String -> [Instruction]
 tokenize = map read . lines
@@ -41,31 +40,24 @@ getValue :: M.Map Char Int -> Operand -> Int
 getValue _ (Literal x) = x
 getValue m (Register r) = fromMaybe 0 $ M.lookup r m
 
+currentInstruction :: State -> Instruction
+currentInstruction state = instructions state V.! ip state
+
 step :: State -> State
-step state = execute $ instructions state V.! ip state
+step state = execute $ currentInstruction state
   where
-    execute (Snd op) =
-      state { snds = getValue regs op : snds state, ip = ip' }
-
-    execute (Rcv op)
-      | getValue regs op /= 0 =
-          let lastSound = head $ snds state
-          in  state { rcvs = lastSound : rcvs state, ip = ip' }
-      | otherwise = state { ip = ip' }
-
     execute (Set (Register r1) op2) =
       let v2 = getValue regs op2
           regs' = M.insert r1 v2 regs
       in state { registers = regs', ip = ip' }
 
-    execute (Add op1 op2) = binary op1 op2 (+)
+    execute (Sub op1 op2) = binary op1 op2 (-)
     execute (Mul op1 op2) = binary op1 op2 (*)
-    execute (Mod op1 op2) = binary op1 op2 (mod)
 
-    execute (Jgz op1 op2) =
+    execute (Jnz op1 op2) =
       let v1 = getValue regs op1
           v2 = getValue regs op2
-      in  if v1 > 0
+      in  if v1 /= 0
           then state { ip = ip state + v2 }
           else state { ip = ip' }
 
@@ -78,13 +70,20 @@ step state = execute $ instructions state V.! ip state
           regs' = M.insert r1 (op v1 v2) regs
       in state { registers = regs', ip = ip' }
 
+isFinished :: State -> Bool
+isFinished state = ip state < 0 || ip state >= V.length (instructions state)
 
-solve1 :: State -> Int
-solve1 state
-  | not $ null $ rcvs state = head $ rcvs state
-  | otherwise = solve1 $ step state
+runCopro :: State -> [State]
+runCopro state
+  | isFinished state = []
+  | otherwise = state : runCopro (step state)
+
+isMul :: Instruction -> Bool
+isMul (Mul _ _) = True
+isMul _ = False
 
 main :: IO ()
 main = do
-  input <- initState <$> readFile "day23.txt"
-  print $ solve1 input
+  input <- initState `fmap` readFile "day23.txt"
+  print $ length $ filter isMul $ map currentInstruction $ runCopro input
+
