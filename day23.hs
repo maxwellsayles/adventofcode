@@ -1,6 +1,7 @@
 import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
 
+import qualified Data.IntSet as IS
 import qualified Data.Map as M
 import qualified Data.Vector as V
 
@@ -43,6 +44,18 @@ getValue m (Register r) = fromMaybe 0 $ M.lookup r m
 currentInstruction :: State -> Instruction
 currentInstruction state = instructions state V.! ip state
 
+step' :: State -> State
+step' state
+  | ip state == 8 =
+    let b = getValue regs (Register 'b')
+        f' = if IS.member b poi then 1 else 0
+        regs' = M.insert 'f' f' regs
+    in state { registers = regs', ip = 24 }
+  | otherwise = step state
+  where
+    regs = registers state
+
+
 step :: State -> State
 step state = execute $ currentInstruction state
   where
@@ -82,8 +95,24 @@ isMul :: Instruction -> Bool
 isMul (Mul _ _) = True
 isMul _ = False
 
+primes :: [Int]
+primes = 2 : 3 : filter (\x -> not $
+                               any (\y -> x `mod` y == 0) $
+                               takeWhile (\y -> y * y <= x) primes) [5, 7 ..]
+
+maxPrime :: Int
+maxPrime = 57 * 100000 + 17000
+
+poi :: IS.IntSet
+poi = IS.fromList $ takeWhile (<= maxPrime) primes
+
 main :: IO ()
 main = do
   input <- initState `fmap` readFile "day23.txt"
+
   print $ length $ filter isMul $ map currentInstruction $ runCopro input
 
+  let input2 = input { registers = M.fromList [('a', 1)] }
+  let solve2 state | isFinished state = state
+                   | otherwise = solve2 $ step' state
+  print $ getValue (registers (solve2 input2)) (Register 'h')
