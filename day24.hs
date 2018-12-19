@@ -50,3 +50,5 @@ main = do
   initState <- (makeStateFromPipes . Pipes . map parsePipe . lines) `fmap` readFile "day24.txt"
   let bridges = map bridge $ solveBridge initState
   print $ maximum $ map bridgeStrength bridges
+  let longest = maximum $ map length bridges
+  print $ maximum $ map bridgeStrength $ filter (\b -> length b == longest) bridges
