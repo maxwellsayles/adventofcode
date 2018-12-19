@@ -48,4 +48,5 @@ solveBridge state =
 main :: IO ()
 main = do
   initState <- (makeStateFromPipes . Pipes . map parsePipe . lines) `fmap` readFile "day24.txt"
-  print $ maximum $ map (bridgeStrength . bridge) $ solveBridge initState
+  let bridges = map bridge $ solveBridge initState
+  print $ maximum $ map bridgeStrength bridges
