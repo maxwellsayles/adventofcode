@@ -1,21 +1,16 @@
 module Seq = let rec cycle xs = seq { yield! xs; yield! cycle xs }
 
-let rec firstRepeat (xs: seq<int>) (acc: int) (visited: Set<int>) =
-    printfn "%d" acc
-    if visited.Contains(acc) then acc
-    else firstRepeat (Seq.tail xs) (acc + Seq.head xs) (visited.Add acc)
-
 [<EntryPoint>]
 let main args =
-    let input = Seq.map int <| System.IO.File.ReadLines("day01.txt")
-    printfn "%d" <| Seq.sum input
+    let input = System.IO.File.ReadLines("day01.txt") |> Seq.map int |> Seq.toList
+    let sums = Seq.scan (+) 0 input |> Seq.tail
+    let sum1 = Seq.last sums
+    printfn "%d" sum1
 
-    let input =
-        System.IO.File.ReadLines("day01.txt")
-        |> Seq.map int
-        |> Seq.toList
-        |> Seq.cycle
-
-    printfn "%d" <| firstRepeat input 0 Set.empty
+    let candidates = [ for i in sums do
+                       for j in sums do
+                       if i < j && (j - i) % sum1 = 0
+                       then yield (i, j) ]
+    List.minBy (fun (i, j) -> j - i) candidates |> snd |> printfn "%d"
 
     0
