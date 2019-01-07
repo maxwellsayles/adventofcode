@@ -1,5 +1,3 @@
-module Seq = let rec cycle xs = seq { yield! xs; yield! cycle xs }
-
 [<EntryPoint>]
 let main args =
     let input = System.IO.File.ReadLines("day01.txt") |> Seq.map int |> Seq.toList
