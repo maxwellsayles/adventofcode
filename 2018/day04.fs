@@ -32,14 +32,15 @@ let sumNaps = List.map (fun (x, y) -> y - x) >> List.sum
 
 let minuteWithMostNaps naps =
     let helper (acc: Map<int, int>) (nap: int * int) =
-        List.fold (fun (acc: Map<int, int>) (d: int) ->
-                   match acc.TryFind d with
-                   | Some x -> acc.Add(d, x + 1)
-                   | None -> acc.Add(d, 1)
-                   ) acc [fst nap .. snd nap - 1]
-    List.fold helper Map.empty naps
-    |> Map.toSeq
-    |> Seq.maxBy snd
+        let incMinute (acc: Map<int, int>) (d: int) =
+            match acc.TryFind d with
+            | Some x -> acc.Add(d, x + 1)
+            | None -> acc.Add(d, 1)
+        List.fold incMinute acc [fst nap .. snd nap - 1]
+    let minutesToCount = List.fold helper Map.empty naps
+    // If this guard didn't nap, use minute 0 with 0 times.
+    if minutesToCount.IsEmpty then (0, 0)
+    else Map.toSeq minutesToCount |> Seq.maxBy snd
 
 [<EntryPoint>]
 let main args =
@@ -52,5 +53,12 @@ let main args =
     let guardWithMostNaps = Map.toSeq naps |> Seq.maxBy (snd >> sumNaps)
     let minute = minuteWithMostNaps (snd guardWithMostNaps) |> fst
     fst guardWithMostNaps * minute |> printfn "%d"
+
+    // Guard ID * minute with the most naps
+    Map.toSeq naps
+    |> Seq.map (fun (id, naps) -> id, minuteWithMostNaps naps)
+    |> Seq.maxBy (snd >> snd)
+    |> fun (id, (minute, _)) -> id * minute
+    |> printfn "%d"
 
     0
