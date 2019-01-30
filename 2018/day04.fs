@@ -2,12 +2,6 @@ open System.Text.RegularExpressions
 
 type GuardShift = { id: int; naps: list<int * int>; }
 
-// let (|Regex|_|) pattern input =
-//     let m = Regex.Match(input, pattern)
-//     if m.Success
-//     then [for g in m.Groups -> g.Value] |> List.tail |> Some
-//     else None
-
 let isBeginsShift str = Regex.Match(str, "Guard").Success
 let guardID str = Regex.Match(str, "Guard #(\d+)").Groups.[1].Value |> int
 let minute str = Regex.Match(str, "\d+:(\d+)").Groups.[1].Value |> int
