@@ -40,7 +40,6 @@ let minuteWithMostNaps naps =
     List.fold helper Map.empty naps
     |> Map.toSeq
     |> Seq.maxBy snd
-    |> fst
 
 [<EntryPoint>]
 let main args =
@@ -51,7 +50,7 @@ let main args =
 
     let naps = input |> groupInput |> List.ofSeq |> guardToNaps
     let guardWithMostNaps = Map.toSeq naps |> Seq.maxBy (snd >> sumNaps)
-    let minute = minuteWithMostNaps (snd guardWithMostNaps)
+    let minute = minuteWithMostNaps (snd guardWithMostNaps) |> fst
     fst guardWithMostNaps * minute |> printfn "%d"
 
     0
