@@ -25,12 +25,22 @@ let parseLine str =
               }
         | _ -> failwith "WTF"
 
+let grid = Array.init 1000 (fun _ -> Array.create 1000 0)
+
+let incArea (claim: Claim) =
+    for y = claim.top to claim.top + claim.height - 1 do
+        for x = claim.left to claim.left + claim.width - 1 do
+            grid.[y].[x] <- grid.[y].[x] + 1
+
 [<EntryPoint>]
 let main args =
     let input =
         System.IO.File.ReadLines("day03.txt")
         |> List.ofSeq
         |> List.map parseLine
-    List.iter (printfn "%A\n") input
+
+    List.iter incArea input
+    Array.fold (Array.fold (fun acc x -> if x >= 2 then acc + 1 else acc)) 0 grid
+    |> printfn "%d\n"
     
     0
