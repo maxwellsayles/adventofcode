@@ -32,6 +32,12 @@ let incArea (claim: Claim) =
         for x = claim.left to claim.left + claim.width - 1 do
             grid.[y].[x] <- grid.[y].[x] + 1
 
+let noOverlap (claim: Claim) =
+    seq { for y = claim.top to claim.top + claim.height - 1 do
+          for x = claim.left to claim.left + claim.width - 1 do
+          yield grid.[y].[x] }
+    |> Seq.forall (fun x -> x = 1)
+
 [<EntryPoint>]
 let main args =
     let input =
@@ -41,6 +47,10 @@ let main args =
 
     List.iter incArea input
     Array.fold (Array.fold (fun acc x -> if x >= 2 then acc + 1 else acc)) 0 grid
-    |> printfn "%d\n"
+    |> printfn "%d"
     
+    List.filter noOverlap input
+    |> List.head
+    |> (fun (claim: Claim) -> printfn "%d" claim.id)
+
     0
