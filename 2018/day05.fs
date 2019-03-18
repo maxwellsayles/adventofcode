@@ -20,8 +20,9 @@ let main args =
     let input =
         System.IO.File.ReadAllLines("day05.txt")
         |> fun x -> x.[0]
+        |> List.ofSeq
 
-    List.ofSeq input
+    input
     |> reactClosure
     |> List.length
     |> printfn "%d"
