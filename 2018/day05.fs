@@ -15,6 +15,12 @@ let rec reactClosure ps =
     let ps' = react ps
     if ps' = ps then ps else reactClosure ps'
 
+let reactOptLength p ps =
+    let p' = Char.ToLower(p)
+    List.filter (fun x -> Char.ToLower(x) <> p') ps
+    |> reactClosure
+    |> List.length
+
 [<EntryPoint>]
 let main args =
     let input =
@@ -25,6 +31,12 @@ let main args =
     input
     |> reactClosure
     |> List.length
+    |> printfn "%d"
+
+    List.map Char.ToLower input
+    |> Set.ofList
+    |> Set.map (fun p -> reactOptLength p input)
+    |> Set.minElement
     |> printfn "%d"
 
     0
