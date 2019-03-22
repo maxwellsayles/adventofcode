@@ -45,5 +45,21 @@ let main args =
     |> List.max
     |> printfn "%d"
 
+    let range = 10000
+    let range' = range / n
+    let isNearby p = List.map (distance p) input
+                     |> List.sum
+                     |> fun x -> x < range
+    let minx' = minx - range'
+    let miny' = miny - range'
+    let maxx' = maxx + range'
+    let maxy' = maxy + range'
+    seq { for x in minx' .. maxx' do
+          for y in miny' .. maxy' do
+          yield (x, y) }
+    |> Seq.filter isNearby
+    |> Seq.length
+    |> printfn "%d"
+
     0
 
