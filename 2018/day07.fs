@@ -15,15 +15,9 @@ let tailState (adj: Map<char, Set<char>>) (state: State): State =
     { heads = heads'; inDegree = inDegree' }
 
 let initStateFromEdges (edges: seq<char * char>): State =
-    let inDegree =
-        Seq.fold (fun (acc: Map<char, int>) (_, y) ->
-                  if acc.ContainsKey y
-                  then acc.Add(y, acc.[y] + 1)
-                  else acc.Add(y, 1)) Map.empty edges
-
+    let inDegree = Seq.map snd edges |> Seq.countBy id |> Map.ofSeq
     let heads =
         Set.difference (Seq.map fst edges |> Set.ofSeq) (Seq.map snd edges |> Set.ofSeq)
-
     { heads = heads; inDegree = inDegree }
 
 let isFinished (state: State): bool = state.heads.IsEmpty
