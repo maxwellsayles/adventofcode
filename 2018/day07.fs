@@ -34,10 +34,13 @@ let main args =
         System.IO.File.ReadAllLines("day07.txt")
         |> Array.map (fun s -> s.[5], s.[36])
 
-    let adj = Array.fold (fun (acc: Map<char, Set<char>>) (x, y) ->
-                          if acc.ContainsKey x
-                          then acc.Add(x, acc.[x].Add(y))
-                          else acc.Add(x, Set.singleton y)) Map.empty edges
+    let outNodes = Seq.map fst edges |> Set.ofSeq
+    let inNodes = Seq.map snd edges |> Set.ofSeq
+
+    let adj =
+        Array.fold (fun (acc: Map<char, Set<char>>) (x, y) -> acc.Add(x, acc.[x].Add(y)))
+                   (Seq.map (fun n -> n, Set.empty) outNodes |> Map.ofSeq)
+                   edges
 
     let initState = initStateFromEdges edges
 
