@@ -37,10 +37,11 @@ let main args =
 
     let outNodes = Seq.map fst edges |> Set.ofSeq
     let inNodes = Seq.map snd edges |> Set.ofSeq
+    let nodes = Set.union outNodes inNodes
 
     let adj =
         Array.fold (fun (acc: Map<char, Set<char>>) (x, y) -> acc.Add(x, acc.[x].Add(y)))
-                   (Seq.map (fun n -> n, Set.empty) outNodes |> Map.ofSeq)
+                   (Seq.map (fun n -> n, Set.empty) nodes |> Map.ofSeq)
                    edges
 
     let initState = {
