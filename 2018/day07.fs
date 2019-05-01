@@ -7,10 +7,16 @@ let headNode (state: State): char = state.heads.MinimumElement
 
 let tailState (adj: Map<char, Set<char>>) (state: State): State =
     let hd = headNode state
+    let edgeNodes = adj.[hd]
+
     let inDegree' =
-        Set.fold (fun (acc: Map<char, int>) y -> acc.Add(y, acc.[y] - 1)) state.inDegree adj.[hd]
-    let heads' = Set.union (state.heads.Remove hd)
-                           (Map.toSeq inDegree' |> Seq.filter (fun (_, c) -> c = 0) |> Seq.map fst |> Set.ofSeq)
+        Set.fold (fun (acc: Map<char, int>) y -> acc.Add(y, acc.[y] - 1))
+                 state.inDegree
+                 edgeNodes
+
+    let heads' =
+        Set.union (state.heads.Remove hd)
+                  (Set.filter (fun n -> inDegree'.[n] = 0) edgeNodes)
 
     { heads = heads'; inDegree = inDegree' }
 
