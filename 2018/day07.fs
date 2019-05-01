@@ -1,18 +1,18 @@
 type State = {
-    zeros: Set<char>;
+    heads: Set<char>;
     inDegree: Map<char, int>;
 }
 
-let headNode (state: State): char = state.zeros.MinimumElement
+let headNode (state: State): char = state.heads.MinimumElement
 
 let tailState (adj: Map<char, Set<char>>) (state: State): State =
     let hd = headNode state
     let inDegree' =
         Set.fold (fun (acc: Map<char, int>) y -> acc.Add(y, acc.[y] - 1)) state.inDegree adj.[hd]
-    let zeros' = Set.union (state.zeros.Remove hd)
+    let heads' = Set.union (state.heads.Remove hd)
                            (Map.toSeq inDegree' |> Seq.filter (fun (_, c) -> c = 0) |> Seq.map fst |> Set.ofSeq)
 
-    { zeros = zeros'; inDegree = inDegree' }
+    { heads = heads'; inDegree = inDegree' }
 
 let initStateFromEdges (edges: seq<char * char>): State =
     let inDegree =
@@ -21,12 +21,12 @@ let initStateFromEdges (edges: seq<char * char>): State =
                   then acc.Add(y, acc.[y] + 1)
                   else acc.Add(y, 1)) Map.empty edges
 
-    let zeros =
+    let heads =
         Set.difference (Seq.map fst edges |> Set.ofSeq) (Seq.map snd edges |> Set.ofSeq)
 
-    { zeros = zeros; inDegree = inDegree }
+    { heads = heads; inDegree = inDegree }
 
-let isFinished (state: State): bool = state.zeros.IsEmpty
+let isFinished (state: State): bool = state.heads.IsEmpty
 
 [<EntryPoint>]
 let main args =
