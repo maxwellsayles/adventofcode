@@ -14,12 +14,6 @@ let tailState (adj: Map<char, Set<char>>) (state: State): State =
 
     { heads = heads'; inDegree = inDegree' }
 
-let initStateFromEdges (edges: seq<char * char>): State =
-    let inDegree = Seq.map snd edges |> Seq.countBy id |> Map.ofSeq
-    let heads =
-        Set.difference (Seq.map fst edges |> Set.ofSeq) (Seq.map snd edges |> Set.ofSeq)
-    { heads = heads; inDegree = inDegree }
-
 let isFinished (state: State): bool = state.heads.IsEmpty
 
 [<EntryPoint>]
@@ -36,7 +30,10 @@ let main args =
                    (Seq.map (fun n -> n, Set.empty) outNodes |> Map.ofSeq)
                    edges
 
-    let initState = initStateFromEdges edges
+    let initState = {
+        heads = Set.difference outNodes inNodes;
+        inDegree = Seq.map snd edges |> Seq.countBy id |> Map.ofSeq;
+    }
 
     printfn "%A" (headNode initState)
 
