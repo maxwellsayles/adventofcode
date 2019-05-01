@@ -22,6 +22,13 @@ let tailState (adj: Map<char, Set<char>>) (state: State): State =
 
 let isFinished (state: State): bool = state.heads.IsEmpty
 
+let statesString (adj: Map<char, Set<char>>) (state: State): string =
+    let rec helper (state: State): seq<char> =
+        if isFinished state
+        then Seq.empty
+        else seq { yield headNode state; yield! helper (tailState adj state) }
+    helper state |> System.String.Concat
+
 [<EntryPoint>]
 let main args =
     let edges =
@@ -41,6 +48,6 @@ let main args =
         inDegree = Seq.map snd edges |> Seq.countBy id |> Map.ofSeq;
     }
 
-    printfn "%A" (headNode initState)
+    printfn "%s" (statesString adj initState)
 
     0
