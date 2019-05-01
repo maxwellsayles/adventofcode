@@ -25,15 +25,14 @@ let initStateFromEdges (edges: seq<char * char>): State =
         Set.difference (Seq.map fst edges |> Set.ofSeq) (Seq.map snd edges |> Set.ofSeq)
 
     { zeros = zeros; counts = counts }
-    
+
 let isFinished (state: State): bool = state.zeros.IsEmpty
 
 [<EntryPoint>]
 let main args =
     let edges =
         System.IO.File.ReadAllLines("day07.txt")
-        |> Array.map (fun s -> s.Split(" "))
-        |> Array.map (fun xs -> xs.[1].[0], xs.[7].[0])
+        |> Array.map (fun s -> s.[5], s.[36])
 
     let adj = Array.fold (fun (acc: Map<char, Set<char>>) (x, y) ->
                           if acc.ContainsKey x
@@ -45,4 +44,3 @@ let main args =
     printfn "%A" (headNode initState)
 
     0
-
