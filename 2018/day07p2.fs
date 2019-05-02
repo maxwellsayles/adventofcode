@@ -1,5 +1,5 @@
 type State = {
-    heads: Set<char * int>;
+    heads: seq<char * int>;
     inDegree: Map<char, int>;
     workers: List<int>;
 }
@@ -8,14 +8,17 @@ let nextState (adj: Map<char, Set<char>>) (state: State): State =
     // Get the next processing time. This is the max of the earliest available
     // worker and the earliest available node to be processed.
     let workerTime = List.head state.workers
-    let nodeTime = Set.map snd state.heads |> Set.minElement
+    let nodeTime = Seq.map snd state.heads |> Seq.min
     let time' = max workerTime nodeTime
 
     // Select all head nodes that are available earlier than the next processing
     // time. These are nodes that are ready for processing.
-    let hd, hdTime =
-        Set.filter (fun (_, t) -> t <= time') state.heads
-        |> Set.minElement
+    let hd =
+        Seq.filter (fun (_, t) -> t <= time') state.heads
+        |> Seq.map fst
+        |> Seq.min
+
+    printfn "Processing %c at time %d" hd time'
 
     let edgeNodes = adj.[hd]
     let processingTime = 61 + int hd - int 'A'
@@ -37,9 +40,14 @@ let nextState (adj: Map<char, Set<char>>) (state: State): State =
     // the next time this worker is available.
     let newHeads =
         Set.filter (fun n -> inDegree'.[n] = 0) edgeNodes
-        |> Set.map (fun n -> n, availableTime)
+        |> Seq.map (fun n -> n, availableTime)
 
-    let heads' = Set.union (state.heads.Remove (hd, hdTime)) newHeads
+    let heads' = Seq.filter (fun (n, _) -> n <> hd) state.heads
+                 |> Seq.append newHeads
+
+    Seq.iter (fun (n, t) -> printfn "Node %c will be available at time %d" n t) heads'
+    printfn "Worker availability: %A" workers'
+    printfn ""
 
     {
         heads = heads';
@@ -48,7 +56,7 @@ let nextState (adj: Map<char, Set<char>>) (state: State): State =
     }
 
 let isFinished (state: State): bool =
-    state.heads.IsEmpty
+    Seq.isEmpty state.heads
 
 let solve (adj: Map<char, Set<char>>) (state: State): State =
     let rec helper (state: State): State =
@@ -73,7 +81,7 @@ let main args =
                    edges
 
     let initState = {
-        heads = Set.difference outNodes inNodes |> Set.map (fun n -> n, 0);
+        heads = Set.difference outNodes inNodes |> Seq.map (fun n -> n, 0);
         inDegree = Seq.map snd edges |> Seq.countBy id |> Map.ofSeq;
         workers = List.replicate 5 0;
     }
