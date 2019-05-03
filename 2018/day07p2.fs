@@ -1,8 +1,19 @@
+type NodeState = {
+    inDegree: int;
+    availableTime: int;
+}
+
 type State = {
     heads: seq<char * int>;
-    inDegree: Map<char, int>;
+    nodes: Map<char, NodeState>;
     workers: List<int>;
 }
+
+let processInputEdge (time: int) (node: NodeState): NodeState =
+    {
+        inDegree = node.inDegree - 1;
+        availableTime = max time node.availableTime;
+    }
 
 let nextState (adj: Map<char, Set<char>>) (state: State): State =
     // Get the next processing time. This is the max of the earliest available
@@ -18,7 +29,7 @@ let nextState (adj: Map<char, Set<char>>) (state: State): State =
         |> Seq.map fst
         |> Seq.min
 
-    printfn "Processing %c at time %d" hd time'
+    printfn "Starting %c at %d" hd time'
 
     let edgeNodes = adj.[hd]
     let processingTime = 61 + int hd - int 'A'
@@ -30,28 +41,26 @@ let nextState (adj: Map<char, Set<char>>) (state: State): State =
     // Update the worker available time.
     let workers' = availableTime :: List.tail state.workers |> List.sort
 
-    // Reduce the in-degree of all the edge nodes.
-    let inDegree' =
-        Set.fold (fun (acc: Map<char, int>) y -> acc.Add(y, acc.[y] - 1))
-                 state.inDegree
+    // Reduce the in-degree of all the edge nodes and update their available
+    // time.
+    let nodes' =
+        Set.fold (fun (acc: Map<char, NodeState>) y ->
+                  acc.Add(y, processInputEdge availableTime acc.[y]))
+                 state.nodes
                  edgeNodes
 
     // New heads are edge nodes that now have a degree of 0. They are available
     // the next time this worker is available.
     let newHeads =
-        Set.filter (fun n -> inDegree'.[n] = 0) edgeNodes
-        |> Seq.map (fun n -> n, availableTime)
+        Set.filter (fun n -> nodes'.[n].inDegree = 0) edgeNodes
+        |> Seq.map (fun n -> n, nodes'.[n].availableTime)
 
     let heads' = Seq.filter (fun (n, _) -> n <> hd) state.heads
                  |> Seq.append newHeads
 
-    Seq.iter (fun (n, t) -> printfn "Node %c will be available at time %d" n t) heads'
-    printfn "Worker availability: %A" workers'
-    printfn ""
-
     {
         heads = heads';
-        inDegree = inDegree'
+        nodes = nodes';
         workers = workers';
     }
 
@@ -82,12 +91,14 @@ let main args =
 
     let initState = {
         heads = Set.difference outNodes inNodes |> Seq.map (fun n -> n, 0);
-        inDegree = Seq.map snd edges |> Seq.countBy id |> Map.ofSeq;
+        nodes = Seq.map snd edges
+                |> Seq.countBy id
+                |> Seq.map (fun (n, c) -> n, { inDegree = c; availableTime = 0 })
+                |> Map.ofSeq;
         workers = List.replicate 5 0;
     }
 
     let finalState = solve adj initState
-    printfn "%A" finalState.workers
-//    printfn "%d" (List.max finalState.workers)
+    printfn "%d" (List.max finalState.workers)
 
     0
