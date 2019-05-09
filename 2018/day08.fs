@@ -14,7 +14,7 @@ let rec parseTree (input: list<int>): Node * list<int> =
                   (List.empty, List.skip 2 input)
                   [1 .. childrenCount]
     let node = {
-        children = children;
+        children = List.rev children;
         metadata = List.take metadataCount tail;
     }
     node, (List.skip metadataCount tail)
@@ -24,6 +24,14 @@ let rec metadata (node: Node): seq<list<int>> =
         yield node.metadata;
         for n in node.children do yield! metadata n;
     }
+
+let rec score(node: Node): int =
+    if List.isEmpty node.children
+    then List.sum node.metadata
+    else let arr = List.map score node.children |> Array.ofList
+         List.filter (fun idx -> idx >= 1 && idx <= Array.length arr) node.metadata
+         |> List.map (fun idx -> arr.[idx-1])
+         |> List.sum
 
 [<EntryPoint>]
 let main args =
@@ -39,5 +47,6 @@ let main args =
     then printfn "%d" (metadata root |> List.concat |> List.sum)
     else failwith "Did not consume all input!"
 
+    printfn "%d" (score root)
 
     0
