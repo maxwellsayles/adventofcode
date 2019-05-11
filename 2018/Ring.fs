@@ -5,15 +5,19 @@ type Ring = {
     ys : list<int>;
 }
 
+let toList ring = List.append ring.xs (List.rev ring.ys)
+
 let private balance ring =
     let n = List.length ring.xs
     let m = List.length ring.ys
     if n >= 2 * m || m >= 2 * n then
-        let vs = List.append ring.xs (List.rev ring.ys)
+        let vs = toList ring
         let p = (n + m) / 2
         { xs = List.take p vs;
           ys = List.skip p vs |> List.rev }
     else ring
+
+let ofList xs = balance { xs = xs; ys = List.empty }
 
 let singleton x = { xs = [x]; ys = List.empty }
 
