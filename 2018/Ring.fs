@@ -1,3 +1,5 @@
+module Ring
+
 type Ring = {
     xs : list<int>;
     ys : list<int>;
@@ -13,8 +15,12 @@ let balance ring =
           ys = List.skip p vs |> List.rev }
     else ring
 
+let singleton x = { xs = [x]; ys = List.empty }
+
 let empty: Ring = { xs = List.empty; ys = List.empty }
+
 let push x ring = balance { xs = x :: ring.xs; ys = ring.ys }
+
 let pop ring =
     match ring.xs, ring.ys with
     | [_], [] -> empty
@@ -40,11 +46,3 @@ let rotateCCW ring =
 
 let spinCW cnt ring = List.fold (fun r _ -> rotateCW r) ring [1..cnt]
 let spinCCW cnt ring = List.fold (fun r _ -> rotateCCW r) ring [1..cnt]
-
-let numPlayers = 464
-let numMarbles = 70918
-
-[<EntryPoint>]
-let main args =
-
-    0
