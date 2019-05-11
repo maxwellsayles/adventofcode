@@ -4,18 +4,13 @@ type Ring = {
 }
 
 let balance ring =
-    if List.isEmpty ring.xs then
-        let n = List.length ring.ys / 2
-        {
-            xs = List.skip n ring.ys |> List.rev;
-            ys = List.take n ring.ys;
-        }
-     elif List.isEmpty ring.ys then
-        let n = List.length ring.xs / 2
-        {
-            xs = List.take n ring.xs;
-            ys = List.skip n ring.xs |> List.rev;
-        }
+    let n = List.length ring.xs
+    let m = List.length ring.ys
+    if n >= 2 * m || m >= 2 * n then
+        let vs = List.append ring.xs (List.rev ring.ys)
+        let p = (n + m) / 2
+        { xs = List.take p vs;
+          ys = List.skip p vs |> List.rev }
     else ring
 
 let empty: Ring = { xs = List.empty; ys = List.empty }
