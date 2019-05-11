@@ -1,0 +1,55 @@
+type Ring = {
+    xs : list<int>;
+    ys : list<int>;
+}
+
+let balance ring =
+    if List.isEmpty ring.xs then
+        let n = List.length ring.ys / 2
+        {
+            xs = List.skip n ring.ys |> List.rev;
+            ys = List.take n ring.ys;
+        }
+     elif List.isEmpty ring.ys then
+        let n = List.length ring.xs / 2
+        {
+            xs = List.take n ring.xs;
+            ys = List.skip n ring.xs |> List.rev;
+        }
+    else ring
+
+let empty: Ring = { xs = List.empty; ys = List.empty }
+let push x ring = balance { xs = x :: ring.xs; ys = ring.ys }
+let pop ring =
+    match ring.xs, ring.ys with
+    | [_], [] -> empty
+    | [], [_] -> empty
+    | _ -> balance { xs = List.tail ring.xs; ys = ring.ys }
+let top ring =
+    match ring.xs, ring.ys with
+    | [x], [] -> x
+    | [], [x] -> x
+    | _ -> List.head ring.xs
+
+let rotateCW ring =
+    match ring.xs, ring.ys with
+    | [_], [] -> ring
+    | [], [_] -> ring
+    | xs, ys -> balance { xs = List.head ys :: xs; ys = List.tail ys }
+
+let rotateCCW ring =
+    match ring.xs, ring.ys with
+    | [_], [] -> ring
+    | [], [_] -> ring
+    | xs, ys -> balance { xs = List.tail xs; ys = List.head xs :: ys }
+
+let spinCW cnt ring = List.fold (fun r _ -> rotateCW r) ring [1..cnt]
+let spinCCW cnt ring = List.fold (fun r _ -> rotateCCW r) ring [1..cnt]
+
+let numPlayers = 464
+let numMarbles = 70918
+
+[<EntryPoint>]
+let main args =
+
+    0
