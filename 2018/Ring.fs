@@ -5,7 +5,7 @@ type Ring = {
     ys : list<int>;
 }
 
-let balance ring =
+let private balance ring =
     let n = List.length ring.xs
     let m = List.length ring.ys
     if n >= 2 * m || m >= 2 * n then
