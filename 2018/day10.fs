@@ -51,13 +51,14 @@ let main args =
         System.IO.File.ReadAllLines("day10.txt")
         |> Array.map parseInput
     
-    let rec solve ps =
+    let rec solve cnt ps =
         let h = height ps
         let ps' = stepState ps
         let h' = height ps'
-        if h' > h then ps else solve ps'
+        if h' > h then cnt, ps else solve (cnt + 1) ps'
 
-    let messagePoints = solve input
+    let cnt, messagePoints = solve 0 input
     printMessage messagePoints
+    printfn "%d" cnt
 
     0
