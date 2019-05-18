@@ -57,8 +57,27 @@ let solve1 =
     |> List.map snd
     |> List.sum
 
+// Run this until the delta is constant. Then basic math.
+let solve2 () =
+    let initState = Seq.toList input
+    let rec helper state ii cc =
+        let state' = step state
+        let n = List.length state'
+        let c = List.zip state' [-ii .. n - ii - 1]
+                |> List.filter (fun (c, _) -> c = '#')
+                |> List.map snd
+                |> List.sum
+        printfn "%d %d %d" ii (c - cc) c
+        helper state' (ii + 1) c
+    helper initState 1 0
+
 [<EntryPoint>]
 let main args = 
     let initState = Seq.toList input
     printfn "%d" solve1
+    // solve2 ()
+
+    // My input repeats at 91, but 100 is nice and round.
+    printfn "%A" (2197UL + 15UL * (50000000000UL - 100UL))
+
     0
