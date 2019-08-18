@@ -41,7 +41,7 @@ let initCartStates: list<CartState> =
     states
 
 let orderedStates (states: list<CartState>): list<CartState> =
-    List.sortBy (fun (s: CartState) -> s.X, s.Y) states
+    List.sortBy (fun (s: CartState) -> s.Y, s.X) states
     
 [<EntryPoint>]
 let main args =
