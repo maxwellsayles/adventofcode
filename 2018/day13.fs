@@ -88,9 +88,7 @@ let runTillCollision (states: list<CartState>): seq<int * int> =
         then cs
         elif List.isEmpty states
         then helper (orderedStates acc) []
-        else let states' = List.tail states
-             let state' = (List.head states).Step
-             helper states' (state' :: acc)
+        else helper (List.tail states) ((List.head states).Step :: acc)
     helper states []
 
 let runTillOneCart (states: list<CartState>): int * int =
