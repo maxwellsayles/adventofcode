@@ -51,7 +51,7 @@ type CartState(x: int, y: int, dx: int, dy: int, turn: Turn) =
     member private this.TurnRight: CartState =
         new CartState(x, y, -dy, dx, turn)
 
-    member this.Step(grid: Grid) =
+    member this.Step =
         let p = this.Forward
         match p.Cell, dx, dy with
         | '/', 0, _ -> p.TurnRight
@@ -74,10 +74,22 @@ let initCartStates: list<CartState> =
     states
 
 let orderedStates (states: list<CartState>): list<CartState> =
-    List.sortBy (fun (s: CartState) -> s.Y, s.X) states
+    List.sortBy (fun (state: CartState) -> state.Y, state.X) states
+
+let collisions (states: list<CartState>): seq<int * int> =
+    Seq.countBy (fun (state: CartState) -> state.X, state.Y) states
+    |> Seq.filter (fun (k, v) -> v > 1)
+    |> Seq.map fst
+
+let stepStates (states: list<CartState>): list<CartState> =
+    // TODO: step and check for collisions
+    orderedStates states
+    |> List.map (fun (state: CartState) -> state.Step)
 
 [<EntryPoint>]
 let main args =
     printfn "%d %d" width height
     printfn "%A" (orderedStates initCartStates)
+    printfn "%A" (stepStates initCartStates)
+    printfn "%A" (stepStates <| stepStates initCartStates)
     0
