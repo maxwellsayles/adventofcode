@@ -93,7 +93,24 @@ let runTillCollision (states: list<CartState>): seq<int * int> =
              helper states' (state' :: acc)
     helper states []
 
+let runTillOneCart (states: list<CartState>): int * int =
+    let rec helper (states: list<CartState>) (acc: list<CartState>) : int * int =
+        let ss = List.append states acc
+        if List.length ss = 1
+        then let s = List.head ss
+             s.X, s.Y
+        else let cs = collisions ss |> Set.ofSeq
+             let filterStates =
+                 List.filter (fun (s: CartState) -> not (Set.contains (s.X, s.Y) cs))
+             let states' = filterStates states
+             let acc' = filterStates acc
+             if List.isEmpty states'
+             then helper (orderedStates acc') []
+             else helper (List.tail states') ((List.head states').Step :: acc')
+    helper states []
+
 [<EntryPoint>]
 let main args =
     printfn "%A" (runTillCollision initCartStates)
+    printfn "%A" (runTillOneCart initCartStates)
     0
