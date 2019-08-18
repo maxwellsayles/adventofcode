@@ -22,16 +22,16 @@ let grid: Grid =
 
 type CartState(x: int, y: int, dx: int, dy: int, turn: Turn) =
     new(x: int, y: int, dx: int, dy: int) = CartState(x, y, dx, dy, LeftTurn)
-    override self.ToString() = sprintf "%d %d %d %d" x y dx dy
+    override this.ToString() = sprintf "%d %d %d %d" x y dx dy
 
     member this.X = x
     member this.Y = y
-    member this.Cell = grid.[x, y]
+    member private this.Cell = grid.[x, y]
 
-    member this.Forward: CartState =
+    member private this.Forward: CartState =
         new CartState(x + dx, y + dy, dx, dy, turn)
 
-    member this.NextTurn: CartState =
+    member private this.NextTurn: CartState =
         let turn' =
             match turn with
             | LeftTurn -> StraightTurn
@@ -39,16 +39,16 @@ type CartState(x: int, y: int, dx: int, dy: int, turn: Turn) =
             | RightTurn -> LeftTurn
         new CartState(x, y, dx, dy, turn')
 
-    member this.Intersection: CartState =
+    member private this.Intersection: CartState =
         match turn with
         | LeftTurn -> this.TurnLeft.NextTurn
         | StraightTurn -> this.NextTurn
         | RightTurn -> this.TurnRight.NextTurn
 
-    member this.TurnLeft: CartState =
+    member private this.TurnLeft: CartState =
         new CartState(x, y, dy, -dx, turn)
 
-    member this.TurnRight: CartState =
+    member private this.TurnRight: CartState =
         new CartState(x, y, -dy, dx, turn)
 
     member this.Step(grid: Grid) =
