@@ -4,15 +4,6 @@ type Grid = char[,]
 
 type Turn = LeftTurn | StraightTurn | RightTurn
 
-type CartState(x: int, y: int, dx: int, dy: int, turn: Turn) =
-    member this.X = x
-    member this.Y = y
-
-    new(x: int, y: int, dx: int, dy: int) = CartState(x, y, dx, dy, LeftTurn)
-    override self.ToString() = sprintf "%d %d %d %d" x y dx dy
-
-    member this.Step(grid: Grid) = new CartState(x, y, dx, dy, turn) // TODO
-
 let input: Grid =
     let inputRaw = System.IO.File.ReadAllLines("day13.txt")
     let height = Array.length inputRaw
@@ -29,6 +20,48 @@ let grid: Grid =
                  | c -> c
                  ) input
 
+type CartState(x: int, y: int, dx: int, dy: int, turn: Turn) =
+    new(x: int, y: int, dx: int, dy: int) = CartState(x, y, dx, dy, LeftTurn)
+    override self.ToString() = sprintf "%d %d %d %d" x y dx dy
+
+    member this.X = x
+    member this.Y = y
+    member this.Cell = grid.[x, y]
+
+    member this.Forward: CartState =
+        new CartState(x + dx, y + dy, dx, dy, turn)
+
+    member this.NextTurn: CartState =
+        let turn' =
+            match turn with
+            | LeftTurn -> StraightTurn
+            | StraightTurn -> RightTurn
+            | RightTurn -> LeftTurn
+        new CartState(x, y, dx, dy, turn')
+
+    member this.Intersection: CartState =
+        match turn with
+        | LeftTurn -> this.TurnLeft.NextTurn
+        | StraightTurn -> this.NextTurn
+        | RightTurn -> this.TurnRight.NextTurn
+
+    member this.TurnLeft: CartState =
+        new CartState(x, y, dy, -dx, turn)
+
+    member this.TurnRight: CartState =
+        new CartState(x, y, -dy, dx, turn)
+
+    member this.Step(grid: Grid) =
+        let p = this.Forward
+        match p.Cell, dx, dy with
+        | '/', 0, _ -> p.TurnRight
+        | '/', _, 0 -> p.TurnLeft
+        | '\\', 0, _ -> p.TurnLeft
+        | '\\', _, 0 -> p.TurnRight
+        | '+', _, _ -> p.Intersection
+        | '-', _, _ | '|', _, _ -> p
+        | _ -> failwith "WTF!"
+
 let initCartStates: list<CartState> =
     let mutable states = List.empty
     Array2D.iteri (fun x y -> function
@@ -42,7 +75,7 @@ let initCartStates: list<CartState> =
 
 let orderedStates (states: list<CartState>): list<CartState> =
     List.sortBy (fun (s: CartState) -> s.Y, s.X) states
-    
+
 [<EntryPoint>]
 let main args =
     printfn "%d %d" width height
