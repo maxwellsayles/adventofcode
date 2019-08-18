@@ -81,15 +81,19 @@ let collisions (states: list<CartState>): seq<int * int> =
     |> Seq.filter (fun (k, v) -> v > 1)
     |> Seq.map fst
 
-let stepStates (states: list<CartState>): list<CartState> =
-    // TODO: step and check for collisions
-    orderedStates states
-    |> List.map (fun (state: CartState) -> state.Step)
+let runTillCollision (states: list<CartState>): seq<int * int> =
+    let rec helper (states: list<CartState>) (acc: list<CartState>) : seq<int * int> =
+        let cs = collisions (List.append states acc)
+        if not (Seq.isEmpty cs)
+        then cs
+        elif List.isEmpty states
+        then helper (orderedStates acc) []
+        else let states' = List.tail states
+             let state' = (List.head states).Step
+             helper states' (state' :: acc)
+    helper states []
 
 [<EntryPoint>]
 let main args =
-    printfn "%d %d" width height
-    printfn "%A" (orderedStates initCartStates)
-    printfn "%A" (stepStates initCartStates)
-    printfn "%A" (stepStates <| stepStates initCartStates)
+    printfn "%A" (runTillCollision initCartStates)
     0
