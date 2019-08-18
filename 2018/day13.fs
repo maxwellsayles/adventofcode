@@ -1,6 +1,6 @@
 open System
 
-type Map = char[,]
+type Grid = char[,]
 
 type Turn = LeftTurn | StraightTurn | RightTurn
 
@@ -11,9 +11,9 @@ type CartState(x: int, y: int, dx: int, dy: int, turn: Turn) =
     new(x: int, y: int, dx: int, dy: int) = CartState(x, y, dx, dy, LeftTurn)
     override self.ToString() = sprintf "%d %d %d %d" x y dx dy
 
-    member this.Step(map: Map) = new CartState(x, y, dx, dy, turn) // TODO
+    member this.Step(grid: Grid) = new CartState(x, y, dx, dy, turn) // TODO
 
-let input: Map =
+let input: Grid =
     let inputRaw = System.IO.File.ReadAllLines("day13.txt")
     let height = Array.length inputRaw
     let width = String.length inputRaw.[0]
@@ -22,7 +22,7 @@ let input: Map =
 let width = Array2D.length1 input
 let height = Array2D.length2 input
 
-let map: Map =
+let grid: Grid =
     Array2D.map (function
                  | '>' | '<' -> '-'
                  | '^' | 'v' -> '|'
