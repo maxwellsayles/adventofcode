@@ -6,6 +6,7 @@ module V = PersistentVector
 type State = PersistentVector<int>
 
 let input = 556061
+let inputDigitLength = 6
 let initState: State = V.ofSeq [3;7]
 
 let step (i: int) (j: int) (s: State) : int * int * State =
@@ -33,8 +34,8 @@ let main args =
     let finalState = iterate (input + 10)
     let solution =
         List.map (fun i -> V.nth (i + input) finalState) [0..9]
-        |> List.map (sprintf "%d")
+        |> List.map (fun d -> char(d) + '0')
         |> List.toArray
-        |> System.String.Concat
+        |> fun s -> new System.String(s)
     printfn "%s" solution
     0
