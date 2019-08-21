@@ -6,6 +6,7 @@ module V = PersistentVector
 type State = PersistentVector<int>
 
 let input = 556061
+let inputDigits = [5;5;6;0;6;1]
 let initState: State = V.ofSeq [3;7]
 
 let step (i: int) (j: int) (s: State) : int * int * State =
@@ -28,6 +29,12 @@ let scores: seq<int> =
              helper n i' j' s'
     seq { yield! helper 0 0 1 initState }
 
+let rec seek (n: int) (s: list<int>): int =
+    if List.isEmpty s
+    then -1
+    else let digits = List.take 6 s
+         if inputDigits = digits then n else seek (n + 1) (List.tail s)
+
 [<EntryPoint>]
 let main args =
     let solution =
@@ -38,4 +45,9 @@ let main args =
         |> List.toArray
         |> fun s -> new System.String(s)
     printfn "%s" solution
+
+    let samples = Seq.take 30000000 scores |> List.ofSeq
+    let idx = seek 0 samples
+    printfn "%d" idx
+
     0
