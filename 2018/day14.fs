@@ -6,7 +6,6 @@ module V = PersistentVector
 type State = PersistentVector<int>
 
 let input = 556061
-let inputDigitLength = 6
 let initState: State = V.ofSeq [3;7]
 
 let step (i: int) (j: int) (s: State) : int * int * State =
@@ -21,19 +20,20 @@ let step (i: int) (j: int) (s: State) : int * int * State =
     let j' = (j + y + 1) % n
     i', j', s'
 
-let iterate (n: int) : State =
-    let rec helper (n: int) (i: int) (j: int) (s: State) : State =
-        if n = 0
-        then s
+let scores: seq<int> =
+    let rec helper (n: int) (i: int) (j: int) (s: State) : seq<int> =
+        if V.length s > n
+        then seq { yield (V.nth n s); yield! helper (n + 1) i j s }
         else let i', j', s' = step i j s
-             helper (n - 1) i' j' s'
-    helper n 0 1 initState
+             helper n i' j' s'
+    seq { yield! helper 0 0 1 initState }
 
 [<EntryPoint>]
 let main args =
-    let finalState = iterate (input + 10)
     let solution =
-        List.map (fun i -> V.nth (i + input) finalState) [0..9]
+        Seq.skip input scores
+        |> Seq.take 10
+        |> List.ofSeq
         |> List.map (fun d -> char(d) + '0')
         |> List.toArray
         |> fun s -> new System.String(s)
