@@ -3,13 +3,20 @@
 open FSharpx.Collections
 
 module V = PersistentVector
-type State = PersistentVector<int>
+type PVI = PersistentVector<int>
+
+type State = {
+    i: int;
+    j: int;
+    s: PVI;
+}
 
 let input = 556061
-let inputDigits = [5;5;6;0;6;1]
-let initState: State = V.ofSeq [3;7]
+let inputDigits: list<int> = [5;5;6;0;6;1]
+let initState: State = {i = 0; j = 1; s = V.ofSeq [3;7]}
 
-let step (i: int) (j: int) (s: State) : int * int * State =
+let step (state: State) : State =
+    let i, j, s = state.i, state.j, state.s
     let x = V.nth i s
     let y = V.nth j s
     let v = x + y
@@ -19,35 +26,31 @@ let step (i: int) (j: int) (s: State) : int * int * State =
     let n = V.length s'
     let i' = (i + x + 1) % n
     let j' = (j + y + 1) % n
-    i', j', s'
+    {i = i'; j = j'; s = s'}
 
-let scores: seq<int> =
-    let rec helper (n: int) (i: int) (j: int) (s: State) : seq<int> =
-        if V.length s > n
-        then seq { yield (V.nth n s); yield! helper (n + 1) i j s }
-        else let i', j', s' = step i j s
-             helper n i' j' s'
-    seq { yield! helper 0 0 1 initState }
+let rec iterate (n: int) (s: State) : State =
+    if V.length s.s < n
+    then iterate n (step s)
+    else s
 
-let rec seek (n: int) (s: list<int>): int =
-    if List.isEmpty s
-    then -1
-    else let digits = List.take 6 s
-         if inputDigits = digits then n else seek (n + 1) (List.tail s)
+let rec seek (n: int) (s: State): int =
+    let s' = iterate (n + 6) s
+    let digits = List.map (fun i -> V.nth (i + n) s'.s) [0..5]
+    if inputDigits = digits
+    then n
+    else seek (n + 1) s'
 
 [<EntryPoint>]
 let main args =
+    let scores = iterate (input + 10) initState
     let solution =
-        Seq.skip input scores
-        |> Seq.take 10
-        |> List.ofSeq
-        |> List.map (fun d -> char(d) + '0')
-        |> List.toArray
-        |> fun s -> new System.String(s)
+      List.map (fun i -> V.nth (i + input) scores.s) [0..9]
+      |> List.map (fun d -> char(d) + '0')
+      |> List.toArray
+      |> fun s -> new System.String(s)
     printfn "%s" solution
 
-    let samples = Seq.take 30000000 scores |> List.ofSeq
-    let idx = seek 0 samples
+    let idx = seek 0 scores
     printfn "%d" idx
 
     0
