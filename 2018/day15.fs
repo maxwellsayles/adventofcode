@@ -7,7 +7,7 @@ module Q = Queue
 type Grid = string []
 type Team = Set<int * int>
 
-let (grid, initElves, initGoblins): (Grid * Team * Team) =
+let (grid: Grid, initElves: Team, initGoblins: Team) =
     let inputRaw = System.IO.File.ReadAllLines("day15.txt")
     let g = Array.map (String.map (fun c -> if c = '#' then '#' else '.')) inputRaw
     let height = inputRaw.Length
@@ -20,6 +20,12 @@ let (grid, initElves, initGoblins): (Grid * Team * Team) =
     let es = helper (fun c -> c = 'E')
     let gs = helper (fun c -> c = 'G')
     g, es, gs
+
+let isAdjacent (x: int, y: int) (ps: Team) =
+    Set.contains (x - 1, y) ps ||
+    Set.contains (x + 1, y) ps ||
+    Set.contains (x, y - 1) ps ||
+    Set.contains (x, y + 1) ps
 
 [<EntryPoint>]
 let main args =
