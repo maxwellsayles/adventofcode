@@ -31,6 +31,9 @@ let isAdjacent (p: Point) (ps: Team) =
     Set.contains { x = p.x; y = p.y - 1 } ps ||
     Set.contains { x = p.x; y = p.y + 1 } ps
 
+let isValidMove (visited: Set<Point>) (p: Point) =
+    not (Set.contains p visited) && grid.[p.y].[p.x] = '.'
+
 let shortestPath (p: Point) (ps: Team): list<Point> =
     let rec helper (q: Queue<Path>) (visited: Set<Point>) =
         if Queue.isEmpty q
@@ -45,7 +48,7 @@ let shortestPath (p: Point) (ps: Team): list<Point> =
                         { x = p.x; y = p.y - 1 }
                         { x = p.x; y = p.y + 1 }
                         ]
-                      |> List.filter (fun p -> not (Set.contains p visited))
+                      |> List.filter (isValidMove visited)
                   let q' =
                       List.fold (fun acc p -> Queue.conj (p :: path) acc) q ps
                   let visited' = Set.union visited (Set.ofList ps)
