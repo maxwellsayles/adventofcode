@@ -58,7 +58,7 @@ let shortestPath (player: Player) (players: Set<Player>): list<Point> =
         else let path = Queue.head q
              let p = List.head path
              if isAdjacent p awayTeamPositions
-             then path
+             then List.rev path
              else let ps =
                       [ { x = p.x - 1; y = p.y }
                         { x = p.x + 1; y = p.y }
