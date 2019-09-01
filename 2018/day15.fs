@@ -47,7 +47,7 @@ let shortestPath (player: Player) (players: Set<Player>): list<Point> =
     let team = player.team
     let rec helper (q: Queue<Path>) (visited: Set<Point>) =
         if Queue.isEmpty q
-        then failwith "No path."
+        then []
         else let path = Queue.head q
              let p = List.head path
              if isAdjacent { x = p.x; y = p.y; team = team } players
@@ -60,7 +60,8 @@ let shortestPath (player: Player) (players: Set<Player>): list<Point> =
                         ]
                       |> List.filter (isValidMove players visited)
                   let q' =
-                      List.fold (fun acc p -> Queue.conj (p :: path) acc) q ps
+                      List.fold (fun acc p -> Queue.conj (p :: path) acc)
+                                (Queue.tail q) ps
                   let visited' = Set.union visited (Set.ofList ps)
                   helper q' visited'
     let q = Queue.ofList [[player.Point]]
@@ -70,4 +71,6 @@ let shortestPath (player: Player) (players: Set<Player>): list<Point> =
 let main args =
     printfn "%A" grid
     printfn "%A" initPlayers
+    printfn "%A" (shortestPath (Set.minElement initPlayers) initPlayers)
+    printfn "%A" (shortestPath { x = 12; y = 2; team = Goblins } initPlayers)
     0
