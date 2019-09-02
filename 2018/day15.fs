@@ -17,13 +17,15 @@ type Point = { y: int; x: int } with
 type Player = { team: Team; hp: int } with
     member this.AwayTeam = awayTeam this.team
 
+type Players = Map<Point, Player>
+
 type Grid = string []
 type Path = list<Point>
 
 let defaultAP: int = 3
 let initHP: int = 200
 
-let (grid: Grid, initPlayers: Map<Point, Player>) =
+let (grid: Grid, initPlayers: Players) =
     let inputRaw = System.IO.File.ReadAllLines("day15.txt")
     let grid =
         Array.map (String.map (fun c -> if c = '#' then '#' else '.')) inputRaw
@@ -39,7 +41,7 @@ let (grid: Grid, initPlayers: Map<Point, Player>) =
         |> Map.ofList
     grid, players
 
-let isAdjacent (playerPos: Point) (playerTeam: Team) (players: Map<Point, Player>) : bool =
+let isAdjacent (playerPos: Point) (playerTeam: Team) (players: Players) : bool =
     let awayTeam = awayTeam playerTeam
     let isAwayTeamAt (p: Point) =
         match Map.tryFind p players with
@@ -50,12 +52,12 @@ let isAdjacent (playerPos: Point) (playerTeam: Team) (players: Map<Point, Player
     isAwayTeamAt playerPos.Right ||
     isAwayTeamAt playerPos.Down
 
-let isValidMove (players: Map<Point, Player>) (visited: Set<Point>) (p: Point) : bool =
+let isValidMove (players: Players) (visited: Set<Point>) (p: Point) : bool =
     grid.[p.y].[p.x] = '.' &&
     not (Map.containsKey p players) &&
     not (Set.contains p visited)
 
-let shortestPath (playerPos: Point) (playerTeam: Team) (players: Map<Point, Player>) : list<Point> =
+let shortestPath (playerPos: Point) (playerTeam: Team) (players: Players) : list<Point> =
     let team = playerTeam
     let rec helper (q: Queue<Path>) (visited: Set<Point>) =
         if Queue.isEmpty q
@@ -65,43 +67,47 @@ let shortestPath (playerPos: Point) (playerTeam: Team) (players: Map<Point, Play
              if isAdjacent p team players
              then List.rev path
              else
-                // This is intentionally in reading order.
-                let ps =
-                    [ p.Up; p.Left; p.Right; p.Down ]
-                    |> List.filter (isValidMove players visited)
-                let q' =
-                    List.fold (fun acc p -> Queue.conj (p :: path) acc)
-                              (Queue.tail q) ps
-                let visited' = Set.union visited (Set.ofList ps)
-                helper q' visited'
+                 // This is intentionally in reading order.
+                 let ps =
+                     [ p.Up; p.Left; p.Right; p.Down ]
+                     |> List.filter (isValidMove players visited)
+                 let q' =
+                     List.fold (fun acc p -> Queue.conj (p :: path) acc)
+                               (Queue.tail q) ps
+                 let visited' = Set.union visited (Set.ofList ps)
+                 helper q' visited'
     let q = Queue.ofList [[playerPos]]
     helper q Set.empty
 
 // let attack (player: Player) (waiting: Set<Player>) (finished: Set<Player>) : Set<Player> * Set<Player> =
     
 
-// let stepPlayer (player: Player) (waiting: Set<Player>) (finished: Set<Player>) : Set<Player> * Set<Player =
-//     let allPlayers = Set.union waiting finished
-//     let path = shortestPath player allPlayers
-//     match path with
-//     | [] -> waiting, Set.add player finished
-//     | [p] -> attack player waiting finished
-//     | _ :: p :: _ ->
-//         let player' = { x = p.x; y = p.x; team = player.team; hp = player.hp }
-//         let awayTeamPositions = teamPositions (awayTeam player.team) allPlayers
-//         if isAdjacent p awayTeamPositions
-//         then attack player' waiting finished
-//         else waiting, Set.add player' finished
+let stepPlayer (playerPos: Point) (player: Player) (waiting: Players) (finished: Players) : Players * Players =
+    waiting, finished
+    // let players =
+    //     List.append (Map.toList waiting) (Map.toList finished)
+    //     |> Map.ofList
+    // let path = shortestPath playerPos player.team players
+    // match path with
+    // | [] -> waiting, Map.add playerPos player finished
+    // | [p] -> attack player waiting finished
+    // | _ :: p :: _ ->
+    //     let player' = { x = p.x; y = p.x; team = player.team; hp = player.hp }
+    //     let awayTeamPositions = teamPositions (awayTeam player.team) allPlayers
+    //     if isAdjacent p awayTeamPositions
+    //     then attack player' waiting finished
+    //     else waiting, Set.add player' finished
 
-// let step (players: Set<Player>): Set<Player> =
-//     let rect helper (waiting: Set<Players>) (finished: Set<Players>) : Set<Player> =
-//         if Set.isEmpty waiting
-//         then finished
-//         else
-//             let waiting', finished' =
-//                 let player = Set.minElement waiting
-//                 stepPlayer player (Set.remove player waiting) finished
-//             helper waiting' finished'
+let step (players: Players): Players =
+    let rec helper (waiting: Players) (finished: Players) : Players =
+        if Map.isEmpty waiting
+        then finished
+        else
+            let waiting', finished' =
+                let pos, player = Map.toSeq waiting |> Seq.head
+                stepPlayer pos player (Map.remove pos waiting) finished
+            helper waiting' finished'
+    helper players Map.empty
 
 [<EntryPoint>]
 let main args =
@@ -110,4 +116,5 @@ let main args =
     printfn "%A" (shortestPath { x = 11; y = 2 } Goblins initPlayers)
     printfn "%A" (shortestPath { x = 12; y = 2 } Goblins initPlayers)
     printfn "%A" (shortestPath { x = 12; y = 12 } Goblins initPlayers)
+    printfn "%A" (Seq.head initPlayers)
     0
