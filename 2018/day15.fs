@@ -79,24 +79,27 @@ let shortestPath (playerPos: Point) (playerTeam: Team) (players: Players) : list
     let q = Queue.ofList [[playerPos]]
     helper q Set.empty
 
-// let attack (player: Player) (waiting: Set<Player>) (finished: Set<Player>) : Set<Player> * Set<Player> =
-    
+let attack (playerPos: Point) (playerTeam: Team) (waiting: Players) (finished: Players) : Players * Players =
+    // TODO: Implement ME
+    waiting, finished
 
 let stepPlayer (playerPos: Point) (player: Player) (waiting: Players) (finished: Players) : Players * Players =
-    waiting, finished
-    // let players =
-    //     List.append (Map.toList waiting) (Map.toList finished)
-    //     |> Map.ofList
-    // let path = shortestPath playerPos player.team players
-    // match path with
-    // | [] -> waiting, Map.add playerPos player finished
-    // | [p] -> attack player waiting finished
-    // | _ :: p :: _ ->
-    //     let player' = { x = p.x; y = p.x; team = player.team; hp = player.hp }
-    //     let awayTeamPositions = teamPositions (awayTeam player.team) allPlayers
-    //     if isAdjacent p awayTeamPositions
-    //     then attack player' waiting finished
-    //     else waiting, Set.add player' finished
+    let players =
+        List.append (Map.toList waiting) (Map.toList finished)
+        |> Map.ofList
+    let path = shortestPath playerPos player.team players
+    match path with
+    // No path. 
+    | [] -> waiting, Map.add playerPos player finished
+
+    // Already adjacent.
+    | [p] -> attack playerPos player.team waiting finished
+
+    // Make a move and check if the player can attack.
+    | _ :: p :: _ ->
+        if isAdjacent p player.team players
+        then attack p player.team waiting finished
+        else waiting, Map.add p player finished
 
 let step (players: Players): Players =
     let rec helper (waiting: Players) (finished: Players) : Players =
