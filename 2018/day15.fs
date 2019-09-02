@@ -80,7 +80,8 @@ let shortestPath (playerPos: Point) (playerTeam: Team) (players: Players) : list
     helper q Set.empty
 
 let attack (playerPos: Point) (playerTeam: Team) (waiting: Players) (finished: Players) : Players * Players =
-    // TODO: Implement ME
+    // TODO: This needs to figure out which player to attack, and then to attack.
+    // attacking decrements HP and possible removes from the set of active Players.
     waiting, finished
 
 let stepPlayer (playerPos: Point) (player: Player) (waiting: Players) (finished: Players) : Players * Players =
