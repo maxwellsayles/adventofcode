@@ -94,13 +94,13 @@ let stepPlayer (playerPos: Point) (player: Player) (waiting: Players) (finished:
     | [] -> waiting, Map.add playerPos player finished
 
     // Already adjacent.
-    | [p] -> attack playerPos player.team waiting finished
+    | [_] -> attack playerPos player.team waiting finished
 
-    // Make a move and check if the player can attack.
-    | _ :: p :: _ ->
-        if isAdjacent p player.team players
-        then attack p player.team waiting finished
-        else waiting, Map.add p player finished
+    // Adjacent after move.
+    | [_; p] -> attack p player.team waiting finished
+
+    // Move the player.
+    | _ :: p :: _ -> waiting, Map.add p player finished
 
 let step (players: Players): Players =
     let rec helper (waiting: Players) (finished: Players) : Players =
