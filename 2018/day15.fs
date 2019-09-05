@@ -79,39 +79,62 @@ let shortestPath (playerPos: Point) (playerTeam: Team) (players: Players) : list
     let q = Queue.ofList [[playerPos]]
     helper q Set.empty
 
-let attack (playerPos: Point) (playerTeam: Team) (waiting: Players) (finished: Players) : Players * Players =
-    // TODO: This needs to figure out which player to attack, and then to attack.
-    // attacking decrements HP and possible removes from the set of active Players.
-    waiting, finished
+let attack (playerPos: Point) (playerTeam: Team) (waiting: Players) (players: Players) : Players * Players =
+    let isAwayTeamAt (p: Point) =
+        match Map.tryFind p players with
+        | Some other -> other.team = awayTeam playerTeam
+        | _ -> false
+    let attackedPos =
+        [playerPos.Up; playerPos.Left; playerPos.Right; playerPos.Down]
+        |> List.filter isAwayTeamAt
+        |> Seq.minBy (fun (p: Point) -> players.[p].hp)
 
-let stepPlayer (playerPos: Point) (player: Player) (waiting: Players) (finished: Players) : Players * Players =
-    let players =
-        List.append (Map.toList waiting) (Map.toList finished)
-        |> Map.ofList
+    let hp' = players.[attackedPos].hp - defaultAP
+    let attackedPlayer = { players.[attackedPos] with hp = hp'}
+
+    let waiting' =
+        match Map.tryFind attackedPos waiting with
+        | Some other ->
+            if hp' > 0
+            then Map.add attackedPos attackedPlayer waiting
+            else Map.remove attackedPos waiting
+        | _ -> waiting
+
+    let players' =
+        if hp' > 0
+        then Map.add attackedPos attackedPlayer players
+        else Map.remove attackedPos players
+
+    waiting', players'
+
+let stepPlayer (playerPos: Point) (player: Player) (waiting: Players) (players: Players) : Players * Players =
     let path = shortestPath playerPos player.team players
     match path with
     // No path. 
-    | [] -> waiting, Map.add playerPos player finished
+    | [] -> waiting, players
 
     // Already adjacent.
-    | [_] -> attack playerPos player.team waiting finished
+    | [_] -> attack playerPos player.team waiting players
 
-    // Adjacent after move.
-    | [_; p] -> attack p player.team waiting finished
-
-    // Move the player.
-    | _ :: p :: _ -> waiting, Map.add p player finished
+    // Move the player, and attack if now adjacent.
+    | _ :: p :: _ ->
+        let players' =
+            Map.remove playerPos players
+            |> Map.add p player
+        if isAdjacent p player.team players'
+        then attack p player.team waiting players'
+        else waiting, players'
 
 let step (players: Players): Players =
-    let rec helper (waiting: Players) (finished: Players) : Players =
+    let rec helper (waiting: Players) (players: Players) : Players =
         if Map.isEmpty waiting
-        then finished
+        then players
         else
-            let waiting', finished' =
+            let waiting', players' =
                 let pos, player = Map.toSeq waiting |> Seq.head
-                stepPlayer pos player (Map.remove pos waiting) finished
-            helper waiting' finished'
-    helper players Map.empty
+                stepPlayer pos player (Map.remove pos waiting) players
+            helper waiting' players'
+    helper players players
 
 [<EntryPoint>]
 let main args =
