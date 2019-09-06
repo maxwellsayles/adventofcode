@@ -29,7 +29,8 @@ let defaultAP: int = 3
 let initHP: int = 200
 
 let (grid: Grid, initPlayers: Players) =
-    let inputRaw = System.IO.File.ReadAllLines("day15.txt")
+    let inputFile = "day15.txt"
+    let inputRaw = System.IO.File.ReadAllLines(inputFile)
     let grid =
         Array.map (String.map (fun c -> if c = '#' then '#' else '.')) inputRaw
     let height = inputRaw.Length
@@ -154,20 +155,28 @@ let printState (players: Players): unit =
         |> Array.map (fun x ->
                       match Map.tryFind (point x y) players with
                       | Some p -> teamToLetter p.team
-                      | _ -> grid.[y].[x]
-                      )
+                      | _ -> grid.[y].[x])
         |> fun arr -> new System.String(arr)
-    
+
+    let rowToHPString (y: int): string =
+        [| 0 .. gridWidth - 1 |]
+        |> Array.map (fun x ->
+                      match Map.tryFind (point x y) players with
+                      | Some p -> string p.hp
+                      | _ -> "")
+        |> Array.filter (fun s -> s <> "")
+        |> fun arr -> System.String.Join(" ", arr)
+
     [ 0.. gridHeight - 1 ]
-    |> List.iter (fun y -> printfn "%s" (rowToString y))
+    |> List.iter (fun y -> printfn "%s %s" (rowToString y) (rowToHPString y))
 
 let rec simulate (players: Players) (turnCount: int) : int * Players =
-    if countTeam players Elves = 0
+    printfn "%d" turnCount
+    printState players
+    printfn ""
+    if countTeam players Elves = 0 || countTeam players Goblins = 0
     then turnCount, players
-    else
-        printState players
-        printfn ""
-        simulate (step players) (turnCount + 1)
+    else simulate (step players) (turnCount + 1)
 
 [<EntryPoint>]
 let main args =
@@ -177,5 +186,7 @@ let main args =
         |> List.map snd
         |> List.map (fun (p: Player) -> p.hp)
         |> List.sum
-    printfn "%d" (turnCount * hpSum)
+
+    printfn "%d" ((turnCount - 1) * hpSum)
+
     0
