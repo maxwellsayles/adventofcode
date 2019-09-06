@@ -6,6 +6,7 @@ module Q = Queue
 
 type Team = Elves | Goblins
 let awayTeam = function Elves -> Goblins | Goblins -> Elves
+let teamToLetter : Team -> char = function Elves -> 'E' | Goblins -> 'G'
 
 // The record order is important so the set is ordered in reading order
 type Point = { y: int; x: int } with
@@ -13,6 +14,8 @@ type Point = { y: int; x: int } with
     member this.Right = { x = this.x + 1; y = this.y }
     member this.Up = { x = this.x; y = this.y - 1 }
     member this.Down = { x = this.x; y = this.y + 1 }
+
+let point (x: int) (y: int) : Point = { x = x; y = y }
 
 type Player = { team: Team; hp: int } with
     member this.AwayTeam = awayTeam this.team
@@ -40,6 +43,9 @@ let (grid: Grid, initPlayers: Players) =
         List.append (helper 'E' Elves) (helper 'G' Goblins)
         |> Map.ofList
     grid, players
+
+let gridWidth : int = String.length grid.[0]
+let gridHeight : int = Array.length grid
 
 let isAdjacent (playerPos: Point) (playerTeam: Team) (players: Players) : bool =
     let awayTeam = awayTeam playerTeam
@@ -136,12 +142,40 @@ let step (players: Players): Players =
             helper waiting' players'
     helper players players
 
+let countTeam (players: Players) (team: Team): int =
+    Map.toList players
+    |> List.map snd
+    |> List.filter (fun (p: Player) -> p.team = team)
+    |> List.length
+
+let printState (players: Players): unit =
+    let rowToString (y: int): string =
+        [| 0 .. gridWidth - 1 |]
+        |> Array.map (fun x ->
+                      match Map.tryFind (point x y) players with
+                      | Some p -> teamToLetter p.team
+                      | _ -> grid.[y].[x]
+                      )
+        |> fun arr -> new System.String(arr)
+    
+    [ 0.. gridHeight - 1 ]
+    |> List.iter (fun y -> printfn "%s" (rowToString y))
+
+let rec simulate (players: Players) (turnCount: int) : int * Players =
+    if countTeam players Elves = 0
+    then turnCount, players
+    else
+        printState players
+        printfn ""
+        simulate (step players) (turnCount + 1)
+
 [<EntryPoint>]
 let main args =
-    printfn "%A" grid
-    printfn "%A" initPlayers
-    printfn "%A" (shortestPath { x = 11; y = 2 } Goblins initPlayers)
-    printfn "%A" (shortestPath { x = 12; y = 2 } Goblins initPlayers)
-    printfn "%A" (shortestPath { x = 12; y = 12 } Goblins initPlayers)
-    printfn "%A" (Seq.head initPlayers)
+    let turnCount, finalPlayers = simulate initPlayers 0
+    let hpSum = 
+        Map.toList finalPlayers
+        |> List.map snd
+        |> List.map (fun (p: Player) -> p.hp)
+        |> List.sum
+    printfn "%d" (turnCount * hpSum)
     0
