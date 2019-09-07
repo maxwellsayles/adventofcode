@@ -17,7 +17,7 @@ type Point = { y: int; x: int } with
 
 let point (x: int) (y: int) : Point = { x = x; y = y }
 
-type Player = { team: Team; hp: int } with
+type Player = { team: Team; hp: int; ap: int } with
     member this.AwayTeam = awayTeam this.team
 
 type Players = Map<Point, Player>
@@ -39,7 +39,7 @@ let (grid: Grid, initPlayers: Players) =
         [for x in [0 .. width - 1] do
          for y in [0 .. height - 1] do
          if inputRaw.[y].[x] = c
-         then yield { x = x; y = y }, { team = t; hp = initHP }]
+         then yield { x = x; y = y }, { team = t; hp = initHP; ap = defaultAP }]
     let players =
         List.append (helper 'E' Elves) (helper 'G' Goblins)
         |> Map.ofList
@@ -47,6 +47,15 @@ let (grid: Grid, initPlayers: Players) =
 
 let gridWidth : int = String.length grid.[0]
 let gridHeight : int = Array.length grid
+
+let countTeam (players: Players) (team: Team) : int =
+    Map.toList players
+    |> List.map snd
+    |> List.filter (fun (p: Player) -> p.team = team)
+    |> List.length
+
+let initElvesCount : int =
+    countTeam initPlayers Elves
 
 let isAdjacent (playerPos: Point) (playerTeam: Team) (players: Players) : bool =
     let awayTeam = awayTeam playerTeam
@@ -86,17 +95,18 @@ let shortestPath (playerPos: Point) (playerTeam: Team) (players: Players) : list
     let q = Queue.ofList [[playerPos]]
     helper q Set.empty
 
-let attack (playerPos: Point) (playerTeam: Team) (waiting: Players) (players: Players) : Players * Players =
+let attack (playerPos: Point) (waiting: Players) (players: Players) : Players * Players =
+    let player = players.[playerPos]
     let isAwayTeamAt (p: Point) =
         match Map.tryFind p players with
-        | Some other -> other.team = awayTeam playerTeam
+        | Some other -> other.team = awayTeam player.team
         | _ -> false
     let attackedPos =
         [playerPos.Up; playerPos.Left; playerPos.Right; playerPos.Down]
         |> List.filter isAwayTeamAt
         |> Seq.minBy (fun (p: Point) -> players.[p].hp)
 
-    let hp' = players.[attackedPos].hp - defaultAP
+    let hp' = players.[attackedPos].hp - player.ap
     let attackedPlayer = { players.[attackedPos] with hp = hp'}
 
     let waiting' =
@@ -114,14 +124,15 @@ let attack (playerPos: Point) (playerTeam: Team) (waiting: Players) (players: Pl
 
     waiting', players'
 
-let stepPlayer (playerPos: Point) (player: Player) (waiting: Players) (players: Players) : Players * Players =
+let stepPlayer (playerPos: Point) (waiting: Players) (players: Players) : Players * Players =
+    let player = players.[playerPos]
     let path = shortestPath playerPos player.team players
     match path with
     // No path. 
     | [] -> waiting, players
 
     // Already adjacent.
-    | [_] -> attack playerPos player.team waiting players
+    | [_] -> attack playerPos waiting players
 
     // Move the player, and attack if now adjacent.
     | _ :: p :: _ ->
@@ -129,7 +140,7 @@ let stepPlayer (playerPos: Point) (player: Player) (waiting: Players) (players: 
             Map.remove playerPos players
             |> Map.add p player
         if isAdjacent p player.team players'
-        then attack p player.team waiting players'
+        then attack p  waiting players'
         else waiting, players'
 
 let step (players: Players): Players =
@@ -138,16 +149,10 @@ let step (players: Players): Players =
         then players
         else
             let waiting', players' =
-                let pos, player = Map.toSeq waiting |> Seq.head
-                stepPlayer pos player (Map.remove pos waiting) players
+                let pos = Map.toSeq waiting |> Seq.head |> fst
+                stepPlayer pos (Map.remove pos waiting) players
             helper waiting' players'
     helper players players
-
-let countTeam (players: Players) (team: Team): int =
-    Map.toList players
-    |> List.map snd
-    |> List.filter (fun (p: Player) -> p.team = team)
-    |> List.length
 
 let printState (players: Players): unit =
     let rowToString (y: int): string =
@@ -177,6 +182,19 @@ let rec simulate (players: Players) (turnCount: int) : int * Players =
     if countTeam players Elves = 0 || countTeam players Goblins = 0
     then turnCount, players
     else simulate (step players) (turnCount + 1)
+
+let anyElvesHurt (elvesAP: int) : option<int * Players> =
+    let rec step (players: Players) (turnCount: int) : option<int * Players> =
+        let elvesCount = countTeam players Elves
+        let goblinsCount = countTeam players Goblins
+        if elvesCount <> initElvesCount
+        then None
+        else None // TODO: Implement
+    let initPlayers' = Map.map (fun (p: Point) (player: Player) ->
+                                if player.team = Elves
+                                then {player with ap = elvesAP}
+                                else player) initPlayers
+    step initPlayers' 0
 
 [<EntryPoint>]
 let main args =
