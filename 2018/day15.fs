@@ -184,27 +184,44 @@ let rec simulate (players: Players) (turnCount: int) : int * Players =
     else simulate (step players) (turnCount + 1)
 
 let anyElvesHurt (elvesAP: int) : option<int * Players> =
-    let rec step (players: Players) (turnCount: int) : option<int * Players> =
+    let rec helper (players: Players) (turnCount: int) : option<int * Players> =
         let elvesCount = countTeam players Elves
         let goblinsCount = countTeam players Goblins
         if elvesCount <> initElvesCount
         then None
-        else None // TODO: Implement
+        elif goblinsCount = 0
+        then Some(turnCount, players)
+        else helper (step players) (turnCount + 1)
     let initPlayers' = Map.map (fun (p: Point) (player: Player) ->
                                 if player.team = Elves
                                 then {player with ap = elvesAP}
                                 else player) initPlayers
-    step initPlayers' 0
+    helper initPlayers' 0
 
-[<EntryPoint>]
-let main args =
+let solve1 : int =
     let turnCount, finalPlayers = simulate initPlayers 0
     let hpSum = 
         Map.toList finalPlayers
         |> List.map snd
         |> List.map (fun (p: Player) -> p.hp)
         |> List.sum
+    (turnCount - 1) * hpSum
 
-    printfn "%d" ((turnCount - 1) * hpSum)
+let solve2 : int =
+    let rec helper (elvesAP: int) =
+        match anyElvesHurt elvesAP with
+        | Some(turnCount, players) ->
+            let hpSum =
+                Map.toList players
+                |> List.map snd
+                |> List.map (fun (p: Player) -> p.hp)
+                |> List.sum
+            (turnCount - 1) * hpSum
+        | None -> helper (elvesAP + 1)
+    helper defaultAP
 
+[<EntryPoint>]
+let main args =
+    printfn "%d" solve1
+    printfn "%d" solve2
     0
