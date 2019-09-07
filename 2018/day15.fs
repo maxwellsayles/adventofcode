@@ -171,9 +171,9 @@ let printState (players: Players): unit =
     |> List.iter (fun y -> printfn "%s %s" (rowToString y) (rowToHPString y))
 
 let rec simulate (players: Players) (turnCount: int) : int * Players =
-    printfn "%d" turnCount
-    printState players
-    printfn ""
+    // printfn "%d" turnCount
+    // printState players
+    // printfn ""
     if countTeam players Elves = 0 || countTeam players Goblins = 0
     then turnCount, players
     else simulate (step players) (turnCount + 1)
