@@ -5,7 +5,7 @@ open FSharpx.Collections
 module V = PersistentVector
 type V<'a> = PersistentVector<'a>
 
-type Regs = PVI
+type Regs = V<int>
 
 type OpCode =
     | Addr | Addi
