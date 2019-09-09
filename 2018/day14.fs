@@ -3,12 +3,12 @@
 open FSharpx.Collections
 
 module V = PersistentVector
-type PVI = PersistentVector<int>
+type V<'a> = PersistentVector<'a>
 
 type State = {
     i: int;
     j: int;
-    s: PVI;
+    s: V<int>;
 }
 
 let input = 556061
