@@ -103,6 +103,10 @@ let idxToOpCode : V<OpCode> =
                            V.update ex.opCodeIdx ops' acc
                            ) init examples
 
+    V.toSeq final
+    |> Seq.iter (fun xs -> printfn "%d" (List.length xs))
+    V.toSeq final
+    |> Seq.iter (fun xs -> if List.length xs <> 1 then failwith "WTF" else ())
     V.map List.head final
 
 let part1 : int =
