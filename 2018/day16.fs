@@ -92,6 +92,19 @@ let examples : list<Example> =
     |> List.ofSeq
     |> parseExamples
 
+let idxToOpCode : V<OpCode> =
+    let init : V<list<OpCode>> =
+        List.replicate 16 allOpCodes
+        |> V.ofSeq
+
+    let final = List.fold (fun (acc: V<list<OpCode>>) (ex: Example) ->
+                           let ops = V.nth ex.opCodeIdx init
+                           let ops' = filterValidOps ops ex
+                           V.update ex.opCodeIdx ops' acc
+                           ) init examples
+
+    V.map List.head final
+
 let part1 : int =
     examples
     |> List.map (fun (ex: Example) -> filterValidOps allOpCodes ex)
