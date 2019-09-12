@@ -81,11 +81,12 @@ let parseExamples (lines: list<String>) : list<Example> =
         else helper (List.skip 4 xs) ((parseExample (List.take 3 xs)) :: acc)
     helper lines List.empty
 
-let filterValidOps (ops: list<OpCode>) (ex: Example) : list<OpCode> =
-    let validOp (op: OpCode) =
-        let instr = Instr (op, ex.args.[0], ex.args.[1], ex.args.[2])
-        exec instr ex.before = ex.after
-    List.filter validOp ops
+let isValidOp (ex: Example) (op: OpCode) : bool =
+    let instr = Instr (op, ex.args.[0], ex.args.[1], ex.args.[2])
+    exec instr ex.before = ex.after
+
+let filterValidOps (ex: Example) (ops: list<OpCode>) : list<OpCode> =
+    List.filter (isValidOp ex) ops
 
 let examples : list<Example> =
     System.IO.File.ReadAllLines("day16-1.txt")
@@ -97,21 +98,34 @@ let idxToOpCode : V<OpCode> =
         List.replicate 16 allOpCodes
         |> V.ofSeq
 
-    let final = List.fold (fun (acc: V<list<OpCode>>) (ex: Example) ->
-                           let ops = V.nth ex.opCodeIdx init
-                           let ops' = filterValidOps ops ex
-                           V.update ex.opCodeIdx ops' acc
-                           ) init examples
+    let final =
+        List.fold (fun (acc: V<list<OpCode>>) (ex: Example) ->
+                   let ops = V.nth ex.opCodeIdx acc
+                   let ops' = filterValidOps ex ops
+                   V.update ex.opCodeIdx ops' acc
+                   ) init examples
 
-    V.toSeq final
-    |> Seq.iter (fun xs -> printfn "%d" (List.length xs))
-    V.toSeq final
-    |> Seq.iter (fun xs -> if List.length xs <> 1 then failwith "WTF" else ())
-    V.map List.head final
+    let rec step (opLists: V<list<OpCode>>): V<list<OpCode>> =
+        let known: Set<OpCode> =
+            V.toSeq opLists
+            |> Seq.filter (fun (xs: list<OpCode>) -> List.length xs = 1)
+            |> Seq.map List.head
+            |> Set.ofSeq
+        printfn "%A" known
+        if Set.count known = 16
+        then opLists
+        else V.map (fun (xs: list<OpCode>) ->
+                    if List.length xs = 1
+                    then xs
+                    else List.filter (fun (op: OpCode) ->
+                                      not (Set.contains op known)) xs) opLists
+             |> step
+
+    step final |> V.map List.head
 
 let part1 : int =
     examples
-    |> List.map (fun (ex: Example) -> filterValidOps allOpCodes ex)
+    |> List.map (fun (ex: Example) -> filterValidOps ex allOpCodes)
     |> List.filter (fun xs -> List.length xs >= 3)
     |> List.length
 
