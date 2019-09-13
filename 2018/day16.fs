@@ -111,7 +111,6 @@ let idxToOpCode : V<OpCode> =
             |> Seq.filter (fun (xs: list<OpCode>) -> List.length xs = 1)
             |> Seq.map List.head
             |> Set.ofSeq
-        printfn "%A" known
         if Set.count known = 16
         then opLists
         else V.map (fun (xs: list<OpCode>) ->
@@ -129,7 +128,21 @@ let part1 : int =
     |> List.filter (fun xs -> List.length xs >= 3)
     |> List.length
 
+let execLine (rs: Regs) (s: String) : Regs =
+    match getValues s with
+        | [| opIdx; a; b; c |] ->
+            let op = V.nth opIdx idxToOpCode
+            let instr = Instr (op, a, b, c)
+            exec instr rs
+        | _ -> failwith "WTF"
+
+let part2 : int =
+    System.IO.File.ReadAllLines("day16-2.txt")
+    |> Seq.fold execLine (V.ofSeq [0; 0; 0; 0])
+    |> V.nth 0
+
 [<EntryPoint>]
 let main args = 
     printfn "%d" part1
+    printfn "%d" part2
     0
