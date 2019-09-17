@@ -9,7 +9,7 @@ type Vein =
     | Horiz of int * (int * int)
     | Vert of int * (int * int)
 
-let parseLine (s: string) : Vein =
+let tokenizeLine (s: string) : Vein =
     match s with
     | Regex @"x=(\d+), y=(\d+)\.\.(\d+)" [ x; y0; y1 ] ->
         Horiz (int x, (int y0, int y1))
@@ -17,10 +17,25 @@ let parseLine (s: string) : Vein =
         Vert (int y, (int x0, int x1))
     | _ -> sprintf "WTF: %s" s |> failwith
 
+type GameBoard = Map<int * int, char>
+
+let rec expandVein (board: GameBoard) (vein: Vein) : GameBoard =
+    match vein with
+    | Horiz (x, (y0, y1)) ->
+        let board' = Map.add (x, y0) '#' board
+        if y0 = y1
+        then board'
+        else expandVein board' (Horiz (x, (y0 + 1, y1)))
+    | Vert (y, (x0, x1)) ->
+        let board' = Map.add (x0, y) '#' board
+        if x0 = x1
+        then board'
+        else expandVein board' (Vert (y, (x0 + 1, x1)))
 
 let input =
     System.IO.File.ReadAllLines("day17.txt")
-    |> Array.map parseLine
+    |> Array.map tokenizeLine
+    |> Array.fold expandVein Map.empty
     |> printfn "%A"
 
 [<EntryPoint>]
