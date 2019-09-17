@@ -32,12 +32,12 @@ let rec expandVein (board: GameBoard) (vein: Vein) : GameBoard =
         then board'
         else expandVein board' (Vert (y, (x0 + 1, x1)))
 
-let input =
+let input : GameBoard =
     System.IO.File.ReadAllLines("day17.txt")
     |> Array.map tokenizeLine
     |> Array.fold expandVein Map.empty
-    |> printfn "%A"
 
 [<EntryPoint>]
 let main args =
+    printfn "%A" input
     0
