@@ -37,7 +37,12 @@ let input : GameBoard =
     |> Array.map tokenizeLine
     |> Array.fold expandVein Map.empty
 
+let inputMinY : int = Map.toSeq input |> Seq.map (fst >> snd) |> Seq.min
+let inputMaxY : int = Map.toSeq input |> Seq.map (fst >> snd) |> Seq.max
+
 [<EntryPoint>]
 let main args =
     printfn "%A" input
+    printfn "%d" inputMinY
+    printfn "%d" inputMaxY
     0
