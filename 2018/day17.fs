@@ -17,17 +17,19 @@ let tokenizeLine (s: string) : Vein =
         Vert (int y, (int x0, int x1))
     | _ -> sprintf "WTF: %s" s |> failwith
 
-type GameBoard = Map<int * int, char>
+type CellValue = Clay | Sand | Water
+
+type GameBoard = Map<int * int, CellValue>
 
 let rec expandVein (board: GameBoard) (vein: Vein) : GameBoard =
     match vein with
     | Horiz (x, (y0, y1)) ->
-        let board' = Map.add (x, y0) '#' board
+        let board' = Map.add (x, y0) Clay board
         if y0 = y1
         then board'
         else expandVein board' (Horiz (x, (y0 + 1, y1)))
     | Vert (y, (x0, x1)) ->
-        let board' = Map.add (x0, y) '#' board
+        let board' = Map.add (x0, y) Clay board
         if x0 = x1
         then board'
         else expandVein board' (Vert (y, (x0 + 1, x1)))
