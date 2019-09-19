@@ -17,7 +17,7 @@ let tokenizeLine (s: string) : Vein =
         Vert (int y, (int x0, int x1))
     | _ -> sprintf "WTF: %s" s |> failwith
 
-type CellValue = Clay | Sand | Water
+type CellValue = Sand | Clay | FlowingWater | TrappedWater
 
 type GameBoard = Map<int * int, CellValue>
 
@@ -34,17 +34,66 @@ let rec expandVein (board: GameBoard) (vein: Vein) : GameBoard =
         then board'
         else expandVein board' (Vert (y, (x0 + 1, x1)))
 
-let input : GameBoard =
+let board : GameBoard =
     System.IO.File.ReadAllLines("day17.txt")
     |> Array.map tokenizeLine
     |> Array.fold expandVein Map.empty
 
-let inputMinY : int = Map.toSeq input |> Seq.map (fst >> snd) |> Seq.min
-let inputMaxY : int = Map.toSeq input |> Seq.map (fst >> snd) |> Seq.max
+let boardMinY : int = Map.toSeq board |> Seq.map (fst >> snd) |> Seq.min
+let boardMaxY : int = Map.toSeq board |> Seq.map (fst >> snd) |> Seq.max
+
+let springStartX : int = 500
+let springStartY : int = 0
+
+let boardLookup (x: int) (y: int) (board: GameBoard) : CellValue =
+    match Map.tryFind (x, y) board with
+    | Some c -> c
+    | _ -> Sand
+
+let isRowContained (x: int) (y: int) (board: GameBoard) : bool =
+    let rec isContained (x': int) (dx: int) : bool =
+        let v = boardLookup x' y board
+        let v' = boardLookup x' (y + 1) board
+        if v = Clay || v = TrappedWater
+        then true
+        elif v' = Clay || v' = TrappedWater
+        then isContained (x' + dx) dx
+        else false
+    isContained x -1 && isContained x +1
+
+let floodRow (x: int) (y: int) (board: GameBoard) : GameBoard =
+    let rec flood (x': int) (dx: int) (board: GameBoard) : GameBoard =
+        if boardLookup x' y board = Clay
+        then board
+        else
+            let board' = Map.add (x', y) TrappedWater board
+            flood (x' + dx) dx board'
+    board
+    |> flood x -1
+    |> flood x +1
+
+let rec flood (x: int) (y: int) (board: GameBoard) : GameBoard =
+    if y > boardMaxY
+    then board
+    elif isRowContained x y board
+    then floodRow x y board
+    else
+        let v = boardLookup x (y + 1) board
+        let board' = Map.add (x, y) FlowingWater board
+        if v = Sand
+        then flood x (y + 1) board'
+        elif v = Clay || v = TrappedWater
+        then board' |> flood (x - 1) y |> flood (x + 1) y
+        else board'
 
 [<EntryPoint>]
 let main args =
-    printfn "%A" input
-    printfn "%d" inputMinY
-    printfn "%d" inputMaxY
+    let finalBoard = flood springStartX springStartY board
+    let solve1 =
+        finalBoard
+        |> Map.toSeq
+        |> Seq.filter (fun ((_, y), _) -> y >= boardMinY && y <= boardMaxY)
+        |> Seq.filter (fun (_, v) -> v = FlowingWater || v = TrappedWater)
+        |> Seq.length
+    printfn "%d" solve1
     0
