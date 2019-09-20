@@ -35,7 +35,7 @@ let rec expandVein (board: GameBoard) (vein: Vein) : GameBoard =
         else expandVein board' (Vert (y, (x0 + 1, x1)))
 
 let board : GameBoard =
-    System.IO.File.ReadAllLines("test.txt")
+    System.IO.File.ReadAllLines("day17.txt")
     |> Array.map tokenizeLine
     |> Array.fold expandVein Map.empty
 
@@ -70,9 +70,10 @@ let renderBoard (board: GameBoard) : unit =
     printfn ""
 
 let addToBoard (p: int * int) (v: CellValue) (board: GameBoard) : GameBoard =
-    let board' = Map.add p v board
-    renderBoard board'
-    board'
+    Map.add p v board
+    // let board' = Map.add p v board
+    // renderBoard board'
+    // board'
 
 let isRowContained (x: int) (y: int) (board: GameBoard) : bool =
     let rec isContained (x': int) (dx: int) : bool =
