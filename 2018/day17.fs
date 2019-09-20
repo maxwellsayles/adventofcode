@@ -72,19 +72,19 @@ let floodRow (x: int) (y: int) (board: GameBoard) : GameBoard =
     |> flood x -1
     |> flood x +1
 
-// This should flood below and then check if the row is contained.
 let rec flood (x: int) (y: int) (board: GameBoard) : GameBoard =
-    if y > boardMaxY
+    let v = boardLookup x y board
+    let v' = boardLookup x (y + 1) board
+    if y > boardMaxY || v <> Sand
     then board
-    elif isRowContained x y board
-    then floodRow x y board
     else
-        let v' = boardLookup x (y + 1) board
-        let board' = Map.add (x, y) FlowingWater board
-        if v' = Sand
-        then flood x (y + 1) board'
+        let board' =
+            Map.add (x, y) FlowingWater board
+            |> flood x (y + 1)
+        if isRowContained x y board'
+        then floodRow x y board'
         elif v' = Clay || v' = TrappedWater
-        then board' |> flood (x - 1) y |> flood (x + 1) y
+        then board' |> flood (x - y) y |> flood (x + 1) y
         else board'
 
 [<EntryPoint>]
