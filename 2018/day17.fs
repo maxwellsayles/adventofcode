@@ -115,11 +115,17 @@ let rec flood (x: int) (y: int) (board: GameBoard) : GameBoard =
 [<EntryPoint>]
 let main args =
     let finalBoard = flood springStartX springStartY board
-    let solve1 =
+    let water = 
         finalBoard
         |> Map.toSeq
         |> Seq.filter (fun ((_, y), _) -> y >= boardMinY && y <= boardMaxY)
         |> Seq.filter (fun (_, v) -> v = FlowingWater || v = TrappedWater)
-        |> Seq.length
-    printfn "%d" solve1
+
+    Seq.length water
+    |> printfn "%d"
+
+    Seq.filter (fun (_, v) -> v = TrappedWater) water
+    |> Seq.length
+    |> printfn "%d"
+
     0
