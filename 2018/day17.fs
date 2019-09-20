@@ -35,7 +35,7 @@ let rec expandVein (board: GameBoard) (vein: Vein) : GameBoard =
         else expandVein board' (Vert (y, (x0 + 1, x1)))
 
 let board : GameBoard =
-    System.IO.File.ReadAllLines("day17.txt")
+    System.IO.File.ReadAllLines("test.txt")
     |> Array.map tokenizeLine
     |> Array.fold expandVein Map.empty
 
@@ -49,6 +49,30 @@ let boardLookup (x: int) (y: int) (board: GameBoard) : CellValue =
     match Map.tryFind (x, y) board with
     | Some c -> c
     | _ -> Sand
+
+let cellToChar : CellValue -> char = function
+    | Sand -> '.'
+    | Clay -> '#'
+    | FlowingWater -> '|'
+    | TrappedWater -> '~'
+
+let renderBoard (board: GameBoard) : unit =
+    let minX : int = Map.toSeq board |> Seq.map (fst >> fst) |> Seq.min
+    let maxX : int = Map.toSeq board |> Seq.map (fst >> fst) |> Seq.max
+    let minY : int = Map.toSeq board |> Seq.map (fst >> snd) |> Seq.min
+    let maxY : int = Map.toSeq board |> Seq.map (fst >> snd) |> Seq.max
+    for y in [minY .. maxY] do
+        for x in [minX .. maxX] do
+            boardLookup x y board
+            |> cellToChar
+            |> printf "%c" 
+        printfn ""
+    printfn ""
+
+let addToBoard (p: int * int) (v: CellValue) (board: GameBoard) : GameBoard =
+    let board' = Map.add p v board
+    renderBoard board'
+    board'
 
 let isRowContained (x: int) (y: int) (board: GameBoard) : bool =
     let rec isContained (x': int) (dx: int) : bool =
@@ -66,7 +90,7 @@ let floodRow (x: int) (y: int) (board: GameBoard) : GameBoard =
         if boardLookup x' y board = Clay
         then board
         else
-            let board' = Map.add (x', y) TrappedWater board
+            let board' = addToBoard (x', y) TrappedWater board
             flood (x' + dx) dx board'
     board
     |> flood x -1
@@ -74,17 +98,17 @@ let floodRow (x: int) (y: int) (board: GameBoard) : GameBoard =
 
 let rec flood (x: int) (y: int) (board: GameBoard) : GameBoard =
     let v = boardLookup x y board
-    let v' = boardLookup x (y + 1) board
     if y > boardMaxY || v <> Sand
     then board
     else
         let board' =
-            Map.add (x, y) FlowingWater board
+            addToBoard (x, y) FlowingWater board
             |> flood x (y + 1)
+        let v' = boardLookup x (y + 1) board'
         if isRowContained x y board'
         then floodRow x y board'
         elif v' = Clay || v' = TrappedWater
-        then board' |> flood (x - y) y |> flood (x + 1) y
+        then board' |> flood (x - 1) y |> flood (x + 1) y
         else board'
 
 [<EntryPoint>]
