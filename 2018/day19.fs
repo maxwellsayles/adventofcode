@@ -60,7 +60,17 @@ let rec run (rs: Regs) : Regs =
 [<EntryPoint>]
 let main args = 
     printfn "#ip: %d" ipReg
-    let rs = V.ofSeq [0; 0; 0; 0; 0; 0]
-    let rs' = run rs
-    printfn "r0: %d" (V.nth 0 rs')
+
+    let part1 : int =
+        let rs = V.ofSeq [0; 0; 0; 0; 0; 0]
+        let rs' = run rs
+        V.nth 0 rs'
+    printfn "Part 1: %d" part1
+
+    let part2 : int =
+        let rs = V.ofSeq [1; 0; 0; 0; 0; 0]
+        let rs' = run rs
+        V.nth 0 rs'
+    printfn "Part 2: %d" part2
+
     0
