@@ -57,6 +57,23 @@ let rec run (rs: Regs) : Regs =
         run <| V.update ipReg (ip' + 1) rs'
     | None -> rs
 
+let rec getArg (rs: Regs) : int =
+    let ip = V.nth ipReg rs
+    if ip = 1
+    then V.nth 4 rs
+    else
+        match V.tryNth ip instrs with
+        | Some instr -> 
+            let rs' = exec instr rs
+            let ip' = V.nth ipReg rs'
+            getArg <| V.update ipReg (ip' + 1) rs'
+        | None -> failwith "WTF!"
+
+let sumDivisors (n: int) : int =
+    [1..n]
+    |> List.filter (fun i -> n % i = 0)
+    |> List.sum
+
 [<EntryPoint>]
 let main args = 
     printfn "#ip: %d" ipReg
@@ -67,10 +84,16 @@ let main args =
         V.nth 0 rs'
     printfn "Part 1: %d" part1
 
-    let part2 : int =
-        let rs = V.ofSeq [1; 0; 0; 0; 0; 0]
-        let rs' = run rs
-        V.nth 0 rs'
-    printfn "Part 2: %d" part2
+    let part1' : int =
+        V.ofSeq [0; 0; 0; 0; 0; 0]
+        |> getArg
+        |> sumDivisors
+    printfn "Part 1': %d" part1'
 
+    let part2 : int =
+        V.ofSeq [1; 0; 0; 0; 0; 0]
+        |> getArg
+        |> sumDivisors
+    printfn "Part 2: %d" part2
+        
     0
