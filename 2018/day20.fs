@@ -4,7 +4,7 @@ type Step =
     | East
     | South
     | West
-    | Branch of Path * Path
+    | Branch of list<Path>
 and Path = list<Step>
 
 let input : list<char> =
@@ -12,41 +12,43 @@ let input : list<char> =
     |> List.ofSeq
 
 let tokenize (cs: list<char>) : Path =
-    let rec helper (acc: Path) (cs: list<char>) (t: char) : Path * list<char> =
+    let rec parsePath (acc: Path) (cs: list<char>) : Path * list<char> =
         if List.isEmpty cs
         then List.rev acc, []
         else
             let cs' = List.tail cs
             match List.head cs with
-            | 'N' -> helper (North :: acc) cs' t
-            | 'E' -> helper (East :: acc) cs' t
-            | 'S' -> helper (South :: acc) cs' t
-            | 'W' -> helper (West :: acc) cs' t
+            | 'N' -> parsePath (North :: acc) cs'
+            | 'E' -> parsePath (East :: acc) cs'
+            | 'S' -> parsePath (South :: acc) cs'
+            | 'W' -> parsePath (West :: acc) cs'
             | '(' ->
-                let p1, cs'' = helper [] cs' '|'
-                let p2, cs''' = helper [] cs'' ')'
-                helper (Branch (p1, p2) :: acc) cs''' t
-            | '|' ->
-                if t <> '|'
-                then failwith <| sprintf "Expecting %c but got |. %d remains" t (List.length cs)
-                else List.rev acc, cs'
-            | ')' ->
-                if t <> ')'
-                then failwith <| sprintf "Expecting %c but got )" t
-                else List.rev acc, cs'
-            | '$' -> 
-                if t <> '$'
-                then failwith <| sprintf "Expecting %c but got $" t
-                else List.rev acc, cs'
-            | '^' -> helper acc cs' '$'
-            | c -> failwith <| sprintf "Unrecognized: %c" c
-    let p, cs' = helper [] cs '^'
+                let ps, cs'' = parseBranch [] cs'
+                parsePath (Branch ps :: acc) cs''
+            | '|' | ')' ->
+                // Return the path and the remainder, including the terminal
+                // character to be used in determining whether to continue
+                // branching.
+                List.rev acc, cs
+            | '^' | '$' | '\010' ->
+                parsePath acc cs'
+            | c -> failwith <| sprintf "Unexpected %c" c
+
+    and parseBranch (ps: list<Path>) (cs: list<char>) : list<Path> * list<char> =
+        let p, cs' = parsePath [] cs
+        let ps' = p :: ps
+        let cs'' = List.tail cs'
+        match List.head cs' with
+        | '|' -> parseBranch ps' cs''
+        | ')' -> List.rev ps', cs''
+        | c -> failwith <| sprintf "Unexpected %c" c
+
+    let p, cs' = parsePath [] cs
     if List.isEmpty cs'
     then p
     else failwith <| sprintf "Unparsed: %A" cs'
 
 [<EntryPoint>]
 let main args =
-    printfn "%d" <| List.length input
     printfn "%A" <| tokenize input
     0
