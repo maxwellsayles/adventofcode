@@ -62,7 +62,9 @@ let findRooms (path: Path) : Set<Point> =
         | East :: path' -> helper current.East acc' path'
         | South :: path' -> helper current.South acc' path'
         | West :: path' -> helper current.West acc' path'
-        | Branch paths :: path' -> List.fold (helper current) acc' paths
+        | Branch paths :: path' ->
+            let acc'' = List.fold (helper current) acc' paths
+            helper current acc'' path'
     let start = { x = 0; y = 0 }
     helper start Set.empty path
 
