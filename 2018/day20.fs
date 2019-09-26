@@ -1,4 +1,3 @@
-
 type Step =
     | North
     | East
@@ -48,7 +47,31 @@ let tokenize (cs: list<char>) : Path =
     then p
     else failwith <| sprintf "Unparsed: %A" cs'
 
+type Point = { x: int; y: int; } with
+    member this.North = { x = this.x; y = this.y - 1 }
+    member this.East = { x = this.x + 1; y = this.y }
+    member this.South = { x = this.x; y = this.y + 1 }
+    member this.West = { x = this.x - 1; y = this.y }
+
+let findRooms (path: Path) : Set<Point> =
+    let rec helper (current: Point) (acc: Set<Point>) (path: Path) : Set<Point> =
+        let acc' = Set.add current acc
+        match path with
+        | [] -> acc
+        | North :: path' -> helper current.North acc' path'
+        | East :: path' -> helper current.East acc' path'
+        | South :: path' -> helper current.South acc' path'
+        | West :: path' -> helper current.West acc' path'
+        | Branch paths :: path' -> List.fold (helper current) acc' paths
+    let start = { x = 0; y = 0 }
+    helper start Set.empty path
+
 [<EntryPoint>]
 let main args =
-    printfn "%A" <| tokenize input
+    let path = tokenize input
+    let rooms = findRooms path
+    printfn "%d" <| Set.count rooms
+
+    // Find largest path with BFS 
+
     0
