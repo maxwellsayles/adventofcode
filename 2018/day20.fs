@@ -47,32 +47,57 @@ let tokenize (cs: list<char>) : Path =
     then p
     else failwith <| sprintf "Unparsed: %A" cs'
 
-type Point = { x: int; y: int; } with
-    member this.North = { x = this.x; y = this.y - 1 }
-    member this.East = { x = this.x + 1; y = this.y }
-    member this.South = { x = this.x; y = this.y + 1 }
-    member this.West = { x = this.x - 1; y = this.y }
+type Point = { x: int; y: int; }
 
-let findRooms (path: Path) : Set<Point> =
-    let rec helper (current: Point) (acc: Set<Point>) (path: Path) : Set<Point> =
-        let acc' = Set.add current acc
+type Edge = { s: Point; t: Point }
+let edge u v =
+    if u < v then { s = u; t = v } else { s = v; t = u }
+
+let update (tails: Set<Point>) (edges: Set<Edge>) (dir: int * int) : Set<Point> * Set<Edge> =
+    let tails', newEdges =
+        [ for tail in tails do
+          let tail' = { x = tail.x + fst dir;
+                        y = tail.y + snd dir }
+          yield tail', edge tail tail'
+          ]
+        |> List.unzip
+    Set.ofList tails', Set.union edges (Set.ofList newEdges)
+
+let findEdges (path: Path) : Set<Edge> =
+    let rec pathHelper (tails: Set<Point>) (edges: Set<Edge>) (path: Path) : Set<Edge> =
         match path with
-        | [] -> acc
-        | North :: path' -> helper current.North acc' path'
-        | East :: path' -> helper current.East acc' path'
-        | South :: path' -> helper current.South acc' path'
-        | West :: path' -> helper current.West acc' path'
-        | Branch paths :: path' ->
-            let acc'' = List.fold (helper current) acc' paths
-            helper current acc'' path'
-    let start = { x = 0; y = 0 }
-    helper start Set.empty path
+        | [] -> edges
+        | North :: path' ->
+            let tails', edges' = update tails edges (0, -1)
+            pathHelper tails' edges' path'
+        | East :: path' ->
+            let tails', edges' = update tails edges (1, 0)
+            pathHelper tails' edges' path'
+        | South :: path' ->
+            let tails', edges' = update tails edges (0, 1)
+            pathHelper tails' edges' path'
+        | West :: path' ->
+            let tails', edges' = update tails edges (-1, 0)
+            pathHelper tails' edges' path'
+        | Branch branches :: path' ->
+            let tails', edges' = updateBranches tails edges branches
+            pathHelper tails' edges' path'
+
+    and updateBranches (tails: Set<Point>) (edges: Set<Edge>) (branches: list<Path>) : Set<Point> * Set<Edge> =
+        // TODO
+        tails, edges
+
+    pathHelper (Set.ofList [{x = 0; y = 0}]) Set.empty path
 
 [<EntryPoint>]
 let main args =
     let path = tokenize input
-    let rooms = findRooms path
-    printfn "%d" <| Set.count rooms
+    printfn "%d" <| List.length path
+
+    let s = { x = 0; y = 1; }
+    let t = { x = 1; y = 0; }
+    printfn "%A" <| edge s t
+    printfn "%A" <| edge t s
 
     // Find largest path with BFS 
 
