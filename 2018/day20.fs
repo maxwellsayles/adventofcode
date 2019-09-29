@@ -107,26 +107,27 @@ let findEdges (path: Path) : Set<Edge> =
     pathHelper (Set.ofList [{x = 0; y = 0}]) Set.empty path
     |> snd
 
-let maxBfs (edges: Set<Edge>) : int = 
-    let rec helper (visited: Set<Point>) (cur: Q<Point>) (next: Q<Point>) (n: int) : int =
+let bfs (edges: Set<Edge>) : int * list<int> = 
+    let rec helper (visited: Set<Point>) (cur: Q<Point>) (next: Q<Point>) (n: int) (visitedCounts: list<int>) : int * list<int> =
         let isValid (s: Point) (t: Point) =
             Set.contains (edge s t) edges && not (Set.contains t visited)
 
         if Q.isEmpty cur
         then
+            let visitedCounts' = Set.count visited :: visitedCounts
             if Q.isEmpty next
-            then n
-            else helper visited next Q.empty (n + 1)
+            then n, List.rev visitedCounts'
+            else helper visited next Q.empty (n + 1) visitedCounts'
         else
             let p = Q.head cur
             let moves = List.filter (isValid p) [p.North; p.East; p.South; p.West]
             let visited' = Set.union visited (Set.ofList moves)
             let next' = List.foldBack Q.conj moves next
             let cur' = Q.tail cur
-            helper visited' cur' next' n
+            helper visited' cur' next' n visitedCounts
 
     let p = { x = 0; y = 0 }
-    helper (Set.ofList [p]) (Q.ofList [p]) Q.empty 0
+    helper (Set.ofList [p]) (Q.ofList [p]) Q.empty 0 [1]
 
 [<EntryPoint>]
 let main args =
@@ -134,6 +135,8 @@ let main args =
     printfn "%d" (List.length path)
 
     let edges = findEdges path
-    printfn "%d" (maxBfs edges)
+    let maxLength, visitedCounts = bfs edges
+    printfn "%d" maxLength
+    printfn "%d" (List.last visitedCounts - visitedCounts.[999])
 
     0
