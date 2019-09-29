@@ -51,7 +51,9 @@ type Point = { x: int; y: int; }
 
 type Edge = { s: Point; t: Point }
 let edge u v =
-    if u < v then { s = u; t = v } else { s = v; t = u }
+    if u < v
+    then { s = u; t = v }
+    else { s = v; t = u }
 
 let update (tails: Set<Point>) (edges: Set<Edge>) (dir: int * int) : Set<Point> * Set<Edge> =
     let tails', newEdges =
@@ -64,9 +66,9 @@ let update (tails: Set<Point>) (edges: Set<Edge>) (dir: int * int) : Set<Point> 
     Set.ofList tails', Set.union edges (Set.ofList newEdges)
 
 let findEdges (path: Path) : Set<Edge> =
-    let rec pathHelper (tails: Set<Point>) (edges: Set<Edge>) (path: Path) : Set<Edge> =
+    let rec pathHelper (tails: Set<Point>) (edges: Set<Edge>) (path: Path) : Set<Point> * Set<Edge> =
         match path with
-        | [] -> edges
+        | [] -> tails, edges
         | North :: path' ->
             let tails', edges' = update tails edges (0, -1)
             pathHelper tails' edges' path'
@@ -84,20 +86,23 @@ let findEdges (path: Path) : Set<Edge> =
             pathHelper tails' edges' path'
 
     and updateBranches (tails: Set<Point>) (edges: Set<Edge>) (branches: list<Path>) : Set<Point> * Set<Edge> =
-        // TODO
-        tails, edges
+        let tailss, edgess =
+            List.map (pathHelper tails Set.empty) branches
+            |> List.unzip
+        let tails' = List.reduce Set.union tailss
+        let edges' = List.fold Set.union edges edgess
+        tails', edges'
 
     pathHelper (Set.ofList [{x = 0; y = 0}]) Set.empty path
+    |> snd
 
 [<EntryPoint>]
 let main args =
     let path = tokenize input
-    printfn "%d" <| List.length path
+    printfn "%d" (List.length path)
 
-    let s = { x = 0; y = 1; }
-    let t = { x = 1; y = 0; }
-    printfn "%A" <| edge s t
-    printfn "%A" <| edge t s
+    let edges = findEdges path
+    printfn "%d" (Set.count edges)
 
     // Find largest path with BFS 
 
