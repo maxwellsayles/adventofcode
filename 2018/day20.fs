@@ -1,3 +1,10 @@
+// fsharpc -r:FSharpx.Collections.dll day20.fs
+
+open FSharpx.Collections
+
+module Q = Queue
+type Q<'a> = Queue<'a>
+
 type Step =
     | North
     | East
@@ -47,7 +54,11 @@ let tokenize (cs: list<char>) : Path =
     then p
     else failwith <| sprintf "Unparsed: %A" cs'
 
-type Point = { x: int; y: int; }
+type Point = { x: int; y: int; } with
+    member this.North = { x = this.x; y = this.y - 1 }
+    member this.East = { x = this.x - 1; y = this.y }
+    member this.South = { x = this.x; y = this.y + 1 }
+    member this.West = { x = this.x + 1; y = this.y }
 
 type Edge = { s: Point; t: Point }
 let edge u v =
@@ -96,14 +107,33 @@ let findEdges (path: Path) : Set<Edge> =
     pathHelper (Set.ofList [{x = 0; y = 0}]) Set.empty path
     |> snd
 
+let maxBfs (edges: Set<Edge>) : int = 
+    let rec helper (visited: Set<Point>) (cur: Q<Point>) (next: Q<Point>) (n: int) : int =
+        let isValid (s: Point) (t: Point) =
+            Set.contains (edge s t) edges && not (Set.contains t visited)
+
+        if Q.isEmpty cur
+        then
+            if Q.isEmpty next
+            then n
+            else helper visited next Q.empty (n + 1)
+        else
+            let p = Q.head cur
+            let moves = List.filter (isValid p) [p.North; p.East; p.South; p.West]
+            let visited' = Set.union visited (Set.ofList moves)
+            let next' = List.foldBack Q.conj moves next
+            let cur' = Q.tail cur
+            helper visited' cur' next' n
+
+    let p = { x = 0; y = 0 }
+    helper (Set.ofList [p]) (Q.ofList [p]) Q.empty 0
+
 [<EntryPoint>]
 let main args =
     let path = tokenize input
     printfn "%d" (List.length path)
 
     let edges = findEdges path
-    printfn "%d" (Set.count edges)
-
-    // Find largest path with BFS 
+    printfn "%d" (maxBfs edges)
 
     0
