@@ -34,7 +34,7 @@ let parseInstruction (s: String) : Instr =
     let xs = s.Split [|' '|]
     Instr (xs.[0], int xs.[1], int xs.[2], int xs.[3])
 
-let ipReg, instrs : int * V<Instr> =
+let ipReg, instrs : int * Instr [] =
     let lines =
         System.IO.File.ReadAllLines("day21.txt")
         |> List.ofSeq
@@ -45,34 +45,45 @@ let ipReg, instrs : int * V<Instr> =
     let instrs =
         List.tail lines
         |> List.map parseInstruction
-        |> V.ofSeq
+        |> Array.ofSeq
     ipReg, instrs
-
-let rec run (rs: Regs) : Regs =
-    let ip = V.nth ipReg rs
-    match V.tryNth ip instrs with
-    | Some instr -> 
-        let rs' = exec instr rs
-        let ip' = V.nth ipReg rs'
-        run <| V.update ipReg (ip' + 1) rs'
-    | None -> rs
 
 let rec getArg (rs: Regs) : int =
     let ip = V.nth ipReg rs
     if ip = 28
     then V.nth 3 rs
     else
-        match V.tryNth ip instrs with
-        | Some instr -> 
-            let rs' = exec instr rs
-            let ip' = V.nth ipReg rs'
-            getArg <| V.update ipReg (ip' + 1) rs'
-        | None -> failwith "WTF!"
+        let instr = instrs.[ip]
+        let rs' = exec instr rs
+        let ip' = V.nth ipReg rs'
+        getArg <| V.update ipReg (ip' + 1) rs'
+
+let mutable cnt = 0
+let rec getRep (rs: Regs) (acc: Set<int>) : int =
+    let ip = V.nth ipReg rs
+    let rs' =
+        let instr = instrs.[ip]
+        let rs' = exec instr rs
+        let ip' = V.nth ipReg rs'
+        V.update ipReg (ip' + 1) rs'
+    if ip = 28 then
+        let r3 = V.nth 3 rs
+        printfn "%d" cnt
+        cnt <- cnt + 1
+        if Set.contains r3 acc then
+            r3
+        else
+            getRep rs' (Set.add r3 acc)
+    else
+        getRep rs' acc
 
 [<EntryPoint>]
 let main args = 
     printfn "#ip: %d" ipReg
     let r3 = getArg (V.ofSeq [0; 0; 0; 0; 0; 0])
     printfn "ip=28, r3=%d" r3
+
+    let r3' = getRep (V.ofSeq [0; 0; 0; 0; 0; 0]) Set.empty
+    printfn "ip=28, r3=%d" r3'
         
     0
