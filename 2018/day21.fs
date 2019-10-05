@@ -1,4 +1,5 @@
 open System
+open System.Collections.Generic
 
 type Regs = int []
 type Instr = String * int * int * int
@@ -75,7 +76,7 @@ let main args =
     let r3 = getArg [|0; 0; 0; 0; 0; 0|]
     printfn "ip=28, r3=%d" r3
 
-    // let r3' = getRep (V.ofSeq [0; 0; 0; 0; 0; 0]) Set.empty
-    // printfn "ip=28, r3=%d" r3'
+    let r3' = getRep [|0; 0; 0; 0; 0; 0|] Set.empty
+    printfn "ip=28, r3=%d" r3'
         
     0
