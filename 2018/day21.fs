@@ -1,6 +1,3 @@
-// fsharpc -r:FSharpx.Collections.dll day19.fs
-
-open FSharpx.Collections
 open System
 
 type Regs = int []
