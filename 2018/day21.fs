@@ -55,28 +55,28 @@ let rec getArg (rs: Regs) : int =
         getArg rs
 
 // Translated from https://www.reddit.com/r/adventofcode/comments/a86jgt/2018_day_21_solutions/ec8fsc5/
-let rep : int64 =
-    let m : int64 = 0xFFFFFFL
-    let z = 65899L
+let rep : int =
+    let m : int = 0xFFFFFF
+    let z = 65899
 
-    let step (a: int64) : int64 =
-        let b = a ||| 0x10000L
-        let c = (10736359L + (b &&& 0xFFL)) &&& m
+    let step (a: int) : int =
+        let b = a ||| 0x10000
+        let c = (10736359 + (b &&& 0xFF)) &&& m
         let d = (c * z) &&& m
-        let e = (d + ((b >>> 8) &&& 0xFFL)) &&& m
+        let e = (d + ((b >>> 8) &&& 0xFF)) &&& m
         let f = (e * z) &&& m
-        let g = (f + ((b >>> 16) &&& 0xFFL)) &&& m
+        let g = (f + ((b >>> 16) &&& 0xFF)) &&& m
         let h = (g * z) &&& m
         h
 
-    let rec loop (a: int64) (acc: Set<int64>) : int64 = 
+    let rec loop (a: int) (acc: Set<int>) : int = 
         let a' = step a
         if Set.contains a' acc then
             a
         else
             loop a' (Set.add a acc)
     
-    loop (step 0L) Set.empty
+    loop 0 Set.empty
 
 [<EntryPoint>]
 let main args = 
