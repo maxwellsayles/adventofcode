@@ -54,21 +54,29 @@ let rec getArg (rs: Regs) : int =
         exec rs
         getArg rs
 
-let mutable cnt = 0
-let rec getRep (rs: Regs) (acc: Set<int>) : int =
-    let ip = rs.[ipReg]
-    if ip = 28 then
-        let r3 = rs.[3]
-        printfn "%d" cnt
-        cnt <- cnt + 1
-        if Set.contains r3 acc then
-            r3
+// Translated from https://www.reddit.com/r/adventofcode/comments/a86jgt/2018_day_21_solutions/ec8fsc5/
+let rep : int64 =
+    let m : int64 = 0xFFFFFFL
+    let z = 65899L
+
+    let step (a: int64) : int64 =
+        let b = a ||| 0x10000L
+        let c = (10736359L + (b &&& 0xFFL)) &&& m
+        let d = (c * z) &&& m
+        let e = (d + ((b >>> 8) &&& 0xFFL)) &&& m
+        let f = (e * z) &&& m
+        let g = (f + ((b >>> 16) &&& 0xFFL)) &&& m
+        let h = (g * z) &&& m
+        h
+
+    let rec loop (a: int64) (acc: Set<int64>) : int64 = 
+        let a' = step a
+        if Set.contains a' acc then
+            a
         else
-            exec rs
-            getRep rs (Set.add r3 acc)
-    else
-        exec rs
-        getRep rs acc
+            loop a' (Set.add a acc)
+    
+    loop (step 0L) Set.empty
 
 [<EntryPoint>]
 let main args = 
@@ -76,7 +84,6 @@ let main args =
     let r3 = getArg [|0; 0; 0; 0; 0; 0|]
     printfn "ip=28, r3=%d" r3
 
-    let r3' = getRep [|0; 0; 0; 0; 0; 0|] Set.empty
-    printfn "ip=28, r3=%d" r3'
+    printfn "part 2: %d" rep
         
     0
