@@ -3,9 +3,9 @@ let target : int * int = 8, 713
 let gridWidth : int = fst target + 1
 let gridHeight : int = snd target + 1
 
-let grid : int [,] =
-    let res = Array2D.create gridWidth gridHeight 0
-    let es = Array2D.create gridWidth gridHeight 0
+let makeGrid (width: int) (height: int) : int [,] =
+    let res = Array2D.create width height 0
+    let es = Array2D.create width height 0
     let fillTerrain (x: int) (y: int) =
         let geoIdx =
             if x = 0 && y = 0 then
@@ -27,6 +27,7 @@ let grid : int [,] =
     res
 
 let part1 : int =
+    let grid : int [,] = makeGrid gridWidth gridHeight
     let mutable sum = 0
     Array2D.iter (fun v -> sum <- sum + v) grid
     sum
