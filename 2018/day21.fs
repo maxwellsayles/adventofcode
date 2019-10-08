@@ -69,21 +69,21 @@ let rep : int =
         let h = (g * z) &&& m
         h
 
-    let rec loop (a: int) (acc: Set<int>) : int = 
+    let rec loop (a: int) (acc: Set<int>) : int =
         let a' = step a
         if Set.contains a' acc then
             a
         else
             loop a' (Set.add a acc)
-    
+
     loop 0 Set.empty
 
 [<EntryPoint>]
-let main args = 
+let main args =
     printfn "#ip: %d" ipReg
     let r3 = getArg [|0; 0; 0; 0; 0; 0|]
     printfn "ip=28, r3=%d" r3
 
     printfn "part 2: %d" rep
-        
+
     0
