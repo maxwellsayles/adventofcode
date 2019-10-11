@@ -42,72 +42,53 @@ let narrowRegion : int = 2
 
 type Equipment = Torch | ClimbingGear | NoEquipment
 type VisitedState = int * int * Equipment
-type State = {
-    dist: int
-    x: int
-    y: int
-    equip: Equipment
+type State =
+    { dist: int
+      x: int
+      y: int
+      equip: Equipment
     } with
     member this.VisitedState : VisitedState = this.x, this.y, this.equip
     member this.Pos : int * int = this.x, this.y
 
-let moveRight (s: State) : State =
-    { s with x = s.x + 1 }
-let moveLeft (s: State) : State =
-    { s with x = s.x - 1 }
-let moveUp (s: State) : State =
-    { s with y = s.y - 1 }
-let moveDown (s: State) : State =
-    { s with y = s.y + 1 }
-
-let bigGridWidth : int = 8000
-let bigGridHeight : int = 8000
+let bigGridWidth : int = 2000
+let bigGridHeight : int = 2000
 let bigGrid : int [,] = makeGrid bigGridWidth bigGridHeight
 
 let isValidState (s: State) : bool =
-    match bigGrid.[s.x, s.y] with
-    | r when r = rockyRegion ->
-        s.equip = ClimbingGear || s.equip = Torch
-    | r when r = wetRegion ->
-        s.equip = ClimbingGear || s.equip = NoEquipment
-    | r when r = narrowRegion ->
-        s.equip = Torch || s.equip = NoEquipment
-    | _ ->
-        failwith "WTF!"
+    if s.x < 0 || s.y < 0 then
+        false
+    else
+        match bigGrid.[s.x, s.y] with
+        | r when r = rockyRegion ->
+            s.equip = ClimbingGear || s.equip = Torch
+        | r when r = wetRegion ->
+            s.equip = ClimbingGear || s.equip = NoEquipment
+        | r when r = narrowRegion ->
+            s.equip = Torch || s.equip = NoEquipment
+        | _ ->
+            failwith "WTF!"
 
-let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : int =
+let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : int * Set<VisitedState> =
     let hd = Heap.head queue
     let tl = Heap.tail queue
     if hd.Pos = target && hd.equip = Torch then
-        hd.dist
+        hd.dist, visited
     elif Set.contains hd.VisitedState visited then
         search tl visited
     else
-        let state' = { hd with dist = hd.dist + 1 }
-        let states1 = [
-            moveUp state'
-            moveLeft state'
-            moveDown state'
-            moveRight state'
-            ]
-        let otherStates = 
-            [ for e in [Torch; ClimbingGear; NoEquipment] do
-              if e <> hd.equip
-              then yield { hd with dist = hd.dist + 7; equip = e }]
-        let states7 = [
-            for state in otherStates do
-            yield [
-                moveUp state
-                moveLeft state
-                moveDown state
-                moveRight state
-                ]
-            ]
-        let states : Heap<State> =
-            List.concat states7
-            |> List.append states1
-            |> List.filter isValidState
-            |> Heap.ofSeq false
+        let s = { hd with dist = hd.dist + 1 }
+        let s' = { hd with dist = hd.dist + 7 }
+        let possibleStates = [
+            { s with x = s.x - 1 }
+            { s with x = s.x + 1 }
+            { s with y = s.y - 1 }
+            { s with y = s.y + 1 }
+            { s' with equip = Torch }
+            { s' with equip = ClimbingGear }
+            { s' with equip = NoEquipment } ]
+        let states =
+            List.filter isValidState possibleStates |> Heap.ofSeq false
 
         let queue' = Heap.merge states queue
         let visited' = Set.add hd.VisitedState visited
@@ -118,6 +99,10 @@ let main args =
     printfn "%d" part1
 
     let initQueue = Heap.ofSeq false [ { dist = 0; x = 0; y = 0; equip = Torch } ]
-    printfn "%d" (search initQueue Set.empty)
+    let dist, visited = search initQueue Set.empty
+    printfn "%d" dist
+    let maxx = Set.toList visited |> List.maxBy (fun (x, _, _) -> x) |> fun (x, _, _) -> x
+    let maxy = Set.toList visited |> List.maxBy (fun (_, y, _) -> y) |> fun (_, y, _) -> y
+    printfn "%d, %d" maxx maxy
 
     0
