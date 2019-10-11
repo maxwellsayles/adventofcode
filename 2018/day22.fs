@@ -60,14 +60,10 @@ let isValidState (s: State) : bool =
         false
     else
         match bigGrid.[s.x, s.y] with
-        | r when r = rockyRegion ->
-            s.equip = ClimbingGear || s.equip = Torch
-        | r when r = wetRegion ->
-            s.equip = ClimbingGear || s.equip = NoEquipment
-        | r when r = narrowRegion ->
-            s.equip = Torch || s.equip = NoEquipment
-        | _ ->
-            failwith "WTF!"
+        | r when r = rockyRegion -> s.equip <> NoEquipment
+        | r when r = wetRegion -> s.equip <> Torch
+        | r when r = narrowRegion -> s.equip <> ClimbingGear
+        | _ -> failwith "WTF!"
 
 let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : int * Set<VisitedState> =
     let hd = Heap.head queue
@@ -88,9 +84,10 @@ let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : int * Set<Vis
             { s' with equip = ClimbingGear }
             { s' with equip = NoEquipment } ]
         let states =
-            List.filter isValidState possibleStates |> Heap.ofSeq false
+            List.filter isValidState possibleStates
+            |> Heap.ofSeq false
 
-        let queue' = Heap.merge states queue
+        let queue' = Heap.merge states tl
         let visited' = Set.add hd.VisitedState visited
         search queue' visited'
 
