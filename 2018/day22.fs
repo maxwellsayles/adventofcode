@@ -4,6 +4,8 @@ open FSharpx.Collections
 
 let depth : int = 3879
 let target : int * int = 8, 713
+// let depth : int = 510
+// let target : int * int = 10, 10
 let gridWidth : int = fst target + 1
 let gridHeight : int = snd target + 1
 
@@ -83,11 +85,8 @@ let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : int * Set<Vis
             { s' with equip = Torch }
             { s' with equip = ClimbingGear }
             { s' with equip = NoEquipment } ]
-        let states =
-            List.filter isValidState possibleStates
-            |> Heap.ofSeq false
-
-        let queue' = Heap.merge states tl
+        let states = List.filter isValidState possibleStates
+        let queue' = List.foldBack Heap.insert states tl
         let visited' = Set.add hd.VisitedState visited
         search queue' visited'
 
