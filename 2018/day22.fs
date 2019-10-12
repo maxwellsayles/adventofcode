@@ -86,7 +86,9 @@ let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : int * Set<Vis
             { s' with equip = Torch }
             { s' with equip = ClimbingGear }
             { s' with equip = NoEquipment } ]
-        let states = List.filter isValidState possibleStates
+        let states =
+            List.filter isValidState possibleStates
+            |> List.filter (fun (s: State) -> not (Set.contains s.VisitedState visited))
         let queue' = List.foldBack Heap.insert states tl
         let visited' = Set.add hd.VisitedState visited
         search queue' visited'
