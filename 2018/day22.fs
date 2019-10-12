@@ -2,10 +2,22 @@
 
 open FSharpx.Collections
 
-let depth : int = 3879
-let target : int * int = 8, 713
-// let depth : int = 510
-// let target : int * int = 10, 10
+type Equipment = Torch | ClimbingGear | NoEquipment
+type VisitedState = int * int * Equipment
+type State =
+    { dist: int
+      x: int
+      y: int
+      equip: Equipment
+    } with
+    member this.VisitedState : VisitedState = this.x, this.y, this.equip
+    member this.Pos : int * int = this.x, this.y
+
+// let depth : int = 3879
+// let target : int * int = 8, 713
+let depth : int = 510
+let target : int * int = 10, 10
+let targetState : VisitedState = 10, 10, Torch
 let gridWidth : int = fst target + 1
 let gridHeight : int = snd target + 1
 
@@ -42,17 +54,6 @@ let rockyRegion : int = 0
 let wetRegion : int = 1
 let narrowRegion : int = 2
 
-type Equipment = Torch | ClimbingGear | NoEquipment
-type VisitedState = int * int * Equipment
-type State =
-    { dist: int
-      x: int
-      y: int
-      equip: Equipment
-    } with
-    member this.VisitedState : VisitedState = this.x, this.y, this.equip
-    member this.Pos : int * int = this.x, this.y
-
 let bigGridWidth : int = 2000
 let bigGridHeight : int = 2000
 let bigGrid : int [,] = makeGrid bigGridWidth bigGridHeight
@@ -70,7 +71,7 @@ let isValidState (s: State) : bool =
 let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : int * Set<VisitedState> =
     let hd = Heap.head queue
     let tl = Heap.tail queue
-    if hd.Pos = target && hd.equip = Torch then
+    if hd.VisitedState = targetState then
         hd.dist, visited
     elif Set.contains hd.VisitedState visited then
         search tl visited
