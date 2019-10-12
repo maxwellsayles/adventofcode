@@ -62,11 +62,11 @@ let isValidState (s: State) : bool =
     if s.x < 0 || s.y < 0 then
         false
     else
-        match bigGrid.[s.x, s.y] with
-        | r when r = rockyRegion -> s.equip <> NoEquipment
-        | r when r = wetRegion -> s.equip <> Torch
-        | r when r = narrowRegion -> s.equip <> ClimbingGear
-        | _ -> failwith "WTF!"
+        let r = bigGrid.[s.x, s.y]
+        match s.equip with
+        | Torch -> r <> wetRegion
+        | ClimbingGear -> r <> narrowRegion
+        | NoEquipment -> r <> rockyRegion
 
 let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : int * Set<VisitedState> =
     let hd = Heap.head queue
