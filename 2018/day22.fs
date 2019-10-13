@@ -17,7 +17,7 @@ type State =
 // let target : int * int = 8, 713
 let depth : int = 510
 let target : int * int = 10, 10
-let targetState : VisitedState = 10, 10, Torch
+let targetState : VisitedState = fst target, snd target, Torch
 let gridWidth : int = fst target + 1
 let gridHeight : int = snd target + 1
 
