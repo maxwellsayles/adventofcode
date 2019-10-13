@@ -3,20 +3,18 @@
 open FSharpx.Collections
 
 type Equipment = Torch | ClimbingGear | NoEquipment
-type VisitedState = int * int * Equipment
-type State =
-    { dist: int
-      x: int
-      y: int
-      equip: Equipment
-    } with
-    member this.VisitedState : VisitedState = this.x, this.y, this.equip
+type VisitedState = { x: int; y: int; equip: Equipment }
+type State = { dist: int; hist: list<VisitedState> } with
+    member this.VisitedState : VisitedState =
+        let hd = List.head this.hist
+        { x = hd.x; y = hd.y; equip = hd.equip }
 
 // let depth : int = 3879
 // let target : int * int = 8, 713
 let depth : int = 510
 let target : int * int = 10, 10
-let targetState : VisitedState = fst target, snd target, Torch
+let targetState : VisitedState =
+    { x = fst target; y = snd target; equip = Torch }
 let gridWidth : int = fst target + 1
 let gridHeight : int = snd target + 1
 
@@ -58,33 +56,41 @@ let bigGridHeight : int = 2000
 let bigGrid : int [,] = makeGrid bigGridWidth bigGridHeight
 
 let isValidState (s: State) : bool =
-    if s.x < 0 || s.y < 0 then
+    let vs = s.VisitedState
+    if vs.x < 0 || vs.y < 0 then
         false
     else
-        let r = bigGrid.[s.x, s.y]
-        match s.equip with
+        let r = bigGrid.[vs.x, vs.y]
+        match vs.equip with
         | Torch -> r <> wetRegion
         | ClimbingGear -> r <> narrowRegion
         | NoEquipment -> r <> rockyRegion
 
-let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : int * Set<VisitedState> =
+let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : State * Set<VisitedState> =
     let hd = Heap.head queue
     let tl = Heap.tail queue
-    if hd.VisitedState = targetState then
-        hd.dist, visited
-    elif Set.contains hd.VisitedState visited then
+    let state = hd.VisitedState
+    if state = targetState then
+        hd, visited
+    elif Set.contains state visited then
         search tl visited
     else
-        let s = { hd with dist = hd.dist + 1 }
-        let s' = { hd with dist = hd.dist + 7 }
         let possibleStates = [
-            { s with x = s.x - 1 }
-            { s with x = s.x + 1 }
-            { s with y = s.y - 1 }
-            { s with y = s.y + 1 }
-            { s' with equip = Torch }
-            { s' with equip = ClimbingGear }
-            { s' with equip = NoEquipment } ]
+            { dist = hd.dist + 1;
+              hist = { state with x = state.x - 1 } :: hd.hist }
+            { dist = hd.dist + 1;
+              hist = { state with x = state.x + 1 } :: hd.hist }
+            { dist = hd.dist + 1;
+              hist = { state with y = state.y - 1 } :: hd.hist }
+            { dist = hd.dist + 1;
+              hist = { state with y = state.y + 1 } :: hd.hist }
+            { dist = hd.dist + 7;
+              hist = { state with equip = Torch } :: hd.hist }
+            { dist = hd.dist + 7;
+              hist = { state with equip = ClimbingGear } :: hd.hist }
+            { dist = hd.dist + 7;
+              hist = { state with equip = NoEquipment } :: hd.hist }
+            ]
         let states =
             List.filter isValidState possibleStates
             |> List.filter (fun (s: State) -> not (Set.contains s.VisitedState visited))
@@ -96,11 +102,12 @@ let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : int * Set<Vis
 let main args =
     printfn "%d" part1
 
-    let initQueue = Heap.ofSeq false [ { dist = 0; x = 0; y = 0; equip = Torch } ]
-    let dist, visited = search initQueue Set.empty
-    printfn "%d" dist
-    let maxx = Set.toList visited |> List.maxBy (fun (x, _, _) -> x) |> fun (x, _, _) -> x
-    let maxy = Set.toList visited |> List.maxBy (fun (_, y, _) -> y) |> fun (_, y, _) -> y
+    let initQueue = Heap.ofSeq false [ { dist = 0;
+                                         hist = [ { x = 0; y = 0; equip = Torch } ] } ]
+    let state, visited = search initQueue Set.empty
+    printfn "%d" state.dist
+    let maxx = Set.toList visited |> List.maxBy (fun s -> s.x) |> fun s -> s.x
+    let maxy = Set.toList visited |> List.maxBy (fun s -> s.y) |> fun s -> s.y
     printfn "%d, %d" maxx maxy
 
     0
