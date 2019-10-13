@@ -11,7 +11,6 @@ type State =
       equip: Equipment
     } with
     member this.VisitedState : VisitedState = this.x, this.y, this.equip
-    member this.Pos : int * int = this.x, this.y
 
 // let depth : int = 3879
 // let target : int * int = 8, 713
