@@ -15,8 +15,6 @@ let depth : int = 510
 let target : int * int = 10, 10
 let targetState : VisitedState =
     { x = fst target; y = snd target; equip = Torch }
-let gridWidth : int = fst target + 1
-let gridHeight : int = snd target + 1
 
 let makeGrid (width: int) (height: int) : int [,] =
     let res = Array2D.create width height 0
@@ -57,7 +55,7 @@ let printGrid (width: int) (height: int) (grid: int [,]) (path: list<VisitedStat
         printfn ""
 
 let part1 : int =
-    let grid : int [,] = makeGrid gridWidth gridHeight
+    let grid : int [,] = makeGrid (fst target + 1) (snd target + 1)
     let mutable sum = 0
     Array2D.iter (fun v -> sum <- sum + v) grid
     sum
