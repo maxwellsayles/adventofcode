@@ -41,6 +41,21 @@ let makeGrid (width: int) (height: int) : int [,] =
             fillTerrain x y
     res
 
+let regionToChar : char [] = [| '.'; '='; '|' |]
+
+let printGrid (width: int) (height: int) (grid: int [,]) (path: list<VisitedState>) : unit =
+    let coordToEquip =
+        List.map (fun vs -> (vs.x, vs.y), vs.equip) path
+        |> Map.ofList
+    for y in [0 .. height - 1] do
+        for x in [0 .. width - 1] do
+            match Map.tryFind (x, y) coordToEquip with
+            | Some Torch -> printf "T"
+            | Some ClimbingGear -> printf "C"
+            | Some NoEquipment -> printf "N"
+            | None -> printf "%c" regionToChar.[grid.[x, y]]
+        printfn ""
+
 let part1 : int =
     let grid : int [,] = makeGrid gridWidth gridHeight
     let mutable sum = 0
@@ -71,7 +86,7 @@ let rec search (queue: Heap<State>) (visited: Set<VisitedState>) : State * Set<V
     let tl = Heap.tail queue
     let state = hd.VisitedState
     if state = targetState then
-        hd, visited
+        { hd with hist = List.rev hd.hist }, visited
     elif Set.contains state visited then
         search tl visited
     else
@@ -109,5 +124,7 @@ let main args =
     let maxx = Set.toList visited |> List.maxBy (fun s -> s.x) |> fun s -> s.x
     let maxy = Set.toList visited |> List.maxBy (fun s -> s.y) |> fun s -> s.y
     printfn "%d, %d" maxx maxy
+
+    printGrid 16 16 bigGrid [] // state.hist
 
     0
