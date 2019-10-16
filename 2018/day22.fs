@@ -123,6 +123,8 @@ let main args =
     let maxy = Set.toList visited |> List.maxBy (fun s -> s.y) |> fun s -> s.y
     printfn "%d, %d" maxx maxy
 
-    printGrid 16 16 bigGrid [] // state.hist
+    printGrid 16 16 bigGrid []
+    printfn ""
+    printGrid 16 16 bigGrid state.hist
 
     0
