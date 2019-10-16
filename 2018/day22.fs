@@ -9,10 +9,10 @@ type State = { dist: int; hist: list<VisitedState> } with
         let hd = List.head this.hist
         { x = hd.x; y = hd.y; equip = hd.equip }
 
-// let depth : int = 3879
-// let target : int * int = 8, 713
-let depth : int = 510
-let target : int * int = 10, 10
+let depth : int = 3879
+let target : int * int = 8, 713
+// let depth : int = 510
+// let target : int * int = 10, 10
 let targetState : VisitedState =
     { x = fst target; y = snd target; equip = Torch }
 
@@ -33,8 +33,8 @@ let makeGrid (width: int) (height: int) : int [,] =
         let errosion = (geoIdx + depth) % 20183
         es.[x, y] <- errosion
 
-    for y in [0 .. width - 1] do
-        for x in [0 .. height - 1] do
+    for y in [0 .. height - 1] do
+        for x in [0 .. width - 1] do
             fillTerrain x y
 
     Array2D.init width height (fun x y -> es.[x, y] % 3)
@@ -64,8 +64,8 @@ let rockyRegion : int = 0
 let wetRegion : int = 1
 let narrowRegion : int = 2
 
-let bigGridWidth : int = 2000
-let bigGridHeight : int = 2000
+let bigGridWidth : int = 1000
+let bigGridHeight : int = 1000
 let bigGrid : int [,] = makeGrid bigGridWidth bigGridHeight
 
 let isValidState (s: State) : bool =
@@ -123,8 +123,8 @@ let main args =
     let maxy = Set.toList visited |> List.maxBy (fun s -> s.y) |> fun s -> s.y
     printfn "%d, %d" maxx maxy
 
-    printGrid 16 16 bigGrid []
-    printfn ""
-    printGrid 16 16 bigGrid state.hist
+    // printGrid 16 16 bigGrid []
+    // printfn ""
+    // printGrid 16 16 bigGrid state.hist
 
     0
