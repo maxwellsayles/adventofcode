@@ -33,8 +33,8 @@ let makeGrid (width: int) (height: int) : int [,] =
         let errosion = (geoIdx + depth) % 20183
         es.[x, y] <- errosion
 
-    for y in [0..snd target] do
-        for x in [0..fst target] do
+    for y in [0 .. width - 1] do
+        for x in [0 .. height - 1] do
             fillTerrain x y
 
     Array2D.init width height (fun x y -> es.[x, y] % 3)
