@@ -14,7 +14,7 @@ type NanobotState = {
 
 let tokenizeLine (s: string) : NanobotState =
     match s with
-    | Regex @"pos=<(-?\d+),(-?\d+),(-?\d+)>, r=(-?\d+)" [ x; y; z; r ] ->
+    | Regex @"pos=<(-?\d+),(-?\d+),(-?\d+)>, r=(\d+)" [ x; y; z; r ] ->
         { x = int x; y = int y; z = int z; r = int r }
     | _ -> sprintf "WTF: %s" s |> failwith
 
