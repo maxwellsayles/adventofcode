@@ -33,8 +33,29 @@ let part1 : int =
     |> List.filter (fun ns -> dist largest ns <= largestR)
     |> List.length
 
+let countInRange ((x, y, z): int * int * int) (bots: list<NanobotState>) : int =
+    let ns0 = { x = x; y = y; z = z; r = 0 }
+    Seq.filter (fun ns -> dist ns0 ns <= ns.r) bots
+    |> Seq.length
+
+let bounds (ns: NanobotState) : list<int * int * int> =
+    [ ns.x - ns.r, ns.y, ns.z
+      ns.x + ns.r, ns.y, ns.z
+      ns.x, ns.y - ns.r, ns.z
+      ns.x, ns.y + ns.r, ns.z
+      ns.x, ns.y, ns.z - ns.r
+      ns.x, ns.y, ns.z + ns.r ]
+      
+let part2 : int =
+    List.map bounds input
+    |> List.fold List.append []
+    |> List.map (fun p -> p, countInRange p input)
+    |> Seq.maxBy (fun ((x, y, z), c) -> c, -(abs x + abs y + abs z))
+    |> fun ((x, y, z), _) -> abs x + abs y + abs z
+
 [<EntryPoint>]
 let main args =
     printfn "%d" part1
+    printfn "%d" part2
     0
 
