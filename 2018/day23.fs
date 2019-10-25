@@ -73,13 +73,10 @@ let main args =
     let sum = ctx.MkAdd(inRangeExprs)
     let minDist = distance3Expr p (zeroExpr, zeroExpr, zeroExpr)
     let opt = ctx.MkOptimize()
-    let sumHandle = opt.MkMaximize(sum)
+    opt.MkMaximize(sum) |> ignore
     let minDistHandle = opt.MkMinimize(minDist)
-    printfn "%A" (opt.Check())
-    let xint = sprintf "%A" (opt.Model.ConstInterp(x)) |> int
-    let yint = sprintf "%A" (opt.Model.ConstInterp(y)) |> int
-    let zint = sprintf "%A" (opt.Model.ConstInterp(z)) |> int
-    printfn "%d" (abs xint + abs yint + abs zint)
-
+    let status = opt.Check()
+    assert (status = Status.SATISFIABLE)
+    printfn "%A" (minDistHandle.Value)
     0
 
