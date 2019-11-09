@@ -1,11 +1,11 @@
-type Attack =
+type AttackType =
     | Bludgeoning
     | Cold
     | Fire
     | Radiation
     | Slashing
 
-let stringToAttack : string -> Attack = function
+let stringToAttack : string -> AttackType = function
     | "bludgeoning" -> Bludgeoning
     | "cold" -> Cold
     | "fire" -> Fire
@@ -14,13 +14,13 @@ let stringToAttack : string -> Attack = function
     | unknown -> failwith <| sprintf "Unrecognized attack: %s" unknown
 
 type State = {
-    attack: Attack
     attackPoints: int
+    attackType: AttackType
     hitPoints: int
-    immunities: list<Attack>
+    immunities: list<AttackType>
     initiative: int
     units: int
-    weaknesses: list<Attack>
+    weaknesses: list<AttackType>
 }
 
 let parseLine = 0
