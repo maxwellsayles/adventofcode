@@ -28,7 +28,10 @@ type State = {
     initiative: int
     units: int
     weaknesses: list<AttackType>
-}
+} with
+    member this.effectivePower = this.units * this.attackPoints
+
+let stateSortKey (s: State) = s.effectivePower, s.initiative
 
 let parseWeaknessesAndImmunities (s: string) : list<AttackType> * list<AttackType> =
     let step (ws, is) s =
