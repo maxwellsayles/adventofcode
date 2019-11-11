@@ -32,9 +32,19 @@ type State = {
     member this.effectivePower =
         this.units * this.attackPoints
 
+    member this.damageTo (that: State) : int =
+        if Set.contains this.attackType that.immunities
+        then 0
+        elif Set.contains this.attackType that.weaknesses
+        then 2 * this.effectivePower
+        else this.effectivePower
+
 let selectionSortKey (s: State) =
     s.effectivePower, s.initiative
 
+let targetSortKey (s: State) (t: State) =
+    s.damageTo t, t.effectivePower, t.initiative
+    
 let parseWeaknessesAndImmunities (s: string) : Set<AttackType> * Set<AttackType> =
     let step (ws, is) s =
         match s with
