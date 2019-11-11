@@ -24,16 +24,18 @@ type State = {
     attackPoints: int
     attackType: AttackType
     hitPoints: int
-    immunities: list<AttackType>
+    immunities: Set<AttackType>
     initiative: int
     units: int
-    weaknesses: list<AttackType>
+    weaknesses: Set<AttackType>
 } with
-    member this.effectivePower = this.units * this.attackPoints
+    member this.effectivePower =
+        this.units * this.attackPoints
 
-let stateSortKey (s: State) = s.effectivePower, s.initiative
+let selectionSortKey (s: State) =
+    s.effectivePower, s.initiative
 
-let parseWeaknessesAndImmunities (s: string) : list<AttackType> * list<AttackType> =
+let parseWeaknessesAndImmunities (s: string) : Set<AttackType> * Set<AttackType> =
     let step (ws, is) s =
         match s with
         | Regex @"(immune to |weak to )(.*)" [thing; ls] ->
@@ -41,24 +43,24 @@ let parseWeaknessesAndImmunities (s: string) : list<AttackType> * list<AttackTyp
                 ls.Split [|','|]
                 |> Array.map (fun s -> s.Trim(' ', ')'))
                 |> Array.map stringToAttack
-                |> List.ofSeq
+                |> Set.ofSeq
             if thing = "immune to " then
-                (ws, List.append is attacks)
+                (ws, Set.union is attacks)
             else
-                (List.append ws attacks, is)
+                (Set.union ws attacks, is)
         | _ -> failwith <| sprintf "Could not parse: %s" s
             
-    s.Split [|';'|]
-    |> Array.fold step (List.empty, List.empty)
+    if s = "" then
+        Set.empty, Set.empty
+    else
+        s.Split [|';'|]
+        |> Array.fold step (Set.empty, Set.empty)
 
 let parseLine (s: string) : State =
     match s with
     | Regex @"(\d+) units each with (\d+) hit points (\(.*\) )?with an attack that does (\d+) (\w+) damage at initiative (\d+)" [units; hitPoints; extra; attackPoints; attackType; initiative] ->
         let weaknesses, immunities =
-            if extra = "" then
-                List.empty, List.empty
-            else
-                parseWeaknessesAndImmunities extra
+            parseWeaknessesAndImmunities extra
         { attackPoints = int attackPoints;
           attackType = stringToAttack attackType;
           hitPoints = int hitPoints;
