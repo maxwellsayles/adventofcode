@@ -86,7 +86,7 @@ let parseLine (team: Team) (s: string) : State =
     | _ -> failwith <| sprintf "Could not parse: %s" s
 
 let initStates =
-    let lines = System.IO.File.ReadAllLines("day24.txt")
+    let lines = System.IO.File.ReadAllLines("day24-example.txt")
     let immune =
         Seq.takeWhile (fun (s: string) -> s.Length <> 0) lines
         |> List.ofSeq
@@ -121,6 +121,8 @@ let selectionPhase (states: list<State>) : list<State * option<State>> =
 
 [<EntryPoint>]
 let main args =
+    printfn "%A" initStates
+    printfn ""
     printfn "%A" (selectionPhase initStates)
 
     0
