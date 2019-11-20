@@ -85,7 +85,7 @@ let parseLine (team: Team) (s: string) : State =
         }
     | _ -> failwith <| sprintf "Could not parse: %s" s
 
-let initImmuneSystem, initInfection =
+let initStates =
     let lines = System.IO.File.ReadAllLines("day24.txt")
     let immune =
         Seq.takeWhile (fun (s: string) -> s.Length <> 0) lines
@@ -97,12 +97,30 @@ let initImmuneSystem, initInfection =
         |> List.ofSeq
         |> List.tail
         |> List.map (parseLine Infection)
-    immune, infect
+    List.append immune infect
+
+let selectionPhase (states: list<State>) : list<State * option<State>> =
+    let states' = List.sortBy selectionSortKey states
+    let targetHelper s ts =
+        let ts' = List.filter (fun t -> t.team <> s.team) ts
+        if List.isEmpty ts' then
+            None
+        else
+            List.maxBy (targetSortKey s) ts'
+            |> Some
+    let step (acc, ts) s =
+        match targetHelper s ts with
+        | None ->
+            (s, None) :: acc, ts
+        | Some t ->
+            let ts' = List.filter (fun xx -> xx <> t) ts
+            (s, Some t) :: acc, ts'
+
+    List.fold step (List.empty, states) states
+    |> fst
 
 [<EntryPoint>]
 let main args =
-    printfn "%A" initImmuneSystem
-    printfn ""
-    printfn "%A" initInfection
+    printfn "%A" (selectionPhase initStates)
 
     0
