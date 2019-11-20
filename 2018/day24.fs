@@ -20,12 +20,15 @@ let stringToAttack : string -> AttackType = function
     | "slashing" -> Slashing
     | unknown -> failwith <| sprintf "Unrecognized attack: \"%s\"" unknown
 
+type Team = ImmuneSystem | Infection
+
 type State = {
     attackPoints: int
     attackType: AttackType
     hitPoints: int
     immunities: Set<AttackType>
     initiative: int
+    team: Team
     units: int
     weaknesses: Set<AttackType>
 } with
@@ -66,18 +69,19 @@ let parseWeaknessesAndImmunities (s: string) : Set<AttackType> * Set<AttackType>
         s.Split [|';'|]
         |> Array.fold step (Set.empty, Set.empty)
 
-let parseLine (s: string) : State =
+let parseLine (team: Team) (s: string) : State =
     match s with
     | Regex @"(\d+) units each with (\d+) hit points (\(.*\) )?with an attack that does (\d+) (\w+) damage at initiative (\d+)" [units; hitPoints; extra; attackPoints; attackType; initiative] ->
         let weaknesses, immunities =
             parseWeaknessesAndImmunities extra
-        { attackPoints = int attackPoints;
-          attackType = stringToAttack attackType;
-          hitPoints = int hitPoints;
-          immunities = immunities;
-          initiative = int initiative;
-          units = int units;
-          weaknesses = weaknesses;
+        { attackPoints = int attackPoints
+          attackType = stringToAttack attackType
+          hitPoints = int hitPoints
+          immunities = immunities
+          initiative = int initiative
+          team = team
+          units = int units
+          weaknesses = weaknesses
         }
     | _ -> failwith <| sprintf "Could not parse: %s" s
 
@@ -87,12 +91,12 @@ let initImmuneSystem, initInfection =
         Seq.takeWhile (fun (s: string) -> s.Length <> 0) lines
         |> List.ofSeq
         |> List.tail
-        |> List.map parseLine
+        |> List.map (parseLine ImmuneSystem)
     let infect =
         Seq.skip (Seq.length immune + 2) lines
         |> List.ofSeq
         |> List.tail
-        |> List.map parseLine
+        |> List.map (parseLine Infection)
     immune, infect
 
 [<EntryPoint>]
