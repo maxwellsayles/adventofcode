@@ -26,6 +26,7 @@ type State = {
     attackPoints: int
     attackType: AttackType
     hitPoints: int
+    id: int
     immunities: Set<AttackType>
     initiative: int
     team: Team
@@ -69,7 +70,7 @@ let parseWeaknessesAndImmunities (s: string) : Set<AttackType> * Set<AttackType>
         s.Split [|';'|]
         |> Array.fold step (Set.empty, Set.empty)
 
-let parseLine (team: Team) (s: string) : State =
+let parseLine (id: int) (team: Team) (s: string) : State =
     match s with
     | Regex @"(\d+) units each with (\d+) hit points (\(.*\) )?with an attack that does (\d+) (\w+) damage at initiative (\d+)" [units; hitPoints; extra; attackPoints; attackType; initiative] ->
         let weaknesses, immunities =
@@ -77,6 +78,7 @@ let parseLine (team: Team) (s: string) : State =
         { attackPoints = int attackPoints
           attackType = stringToAttack attackType
           hitPoints = int hitPoints
+          id = id
           immunities = immunities
           initiative = int initiative
           team = team
@@ -91,12 +93,13 @@ let initStates : list<State> =
         Seq.takeWhile (fun (s: string) -> s.Length <> 0) lines
         |> List.ofSeq
         |> List.tail
-        |> List.map (parseLine ImmuneSystem)
+        |> List.mapi (fun i -> parseLine i ImmuneSystem)
+    let n = List.length immune
     let infect =
         Seq.skip (Seq.length immune + 2) lines
         |> List.ofSeq
         |> List.tail
-        |> List.map (parseLine Infection)
+        |> List.mapi (fun i -> parseLine (i + n) Infection)
     List.append immune infect
 
 let selectionPhase (states: list<State>) : list<State * option<State>> =
