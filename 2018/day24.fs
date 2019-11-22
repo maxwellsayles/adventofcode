@@ -103,7 +103,7 @@ let initStates : list<State> =
         |> List.mapi (fun i -> parseLine (i + n) Infection)
     List.append immune infect
 
-let selectionPhase (states: list<State>) : list<State * option<State>> =
+let selectionPhase (states: list<State>) : list<Id * option<Id>> =
     let states' = List.sortBy selectionSortKey states
     let targetHelper s ts =
         let ts' = List.filter (fun t -> t.team <> s.team) ts
@@ -115,10 +115,10 @@ let selectionPhase (states: list<State>) : list<State * option<State>> =
     let step (acc, ts) s =
         match targetHelper s ts with
         | None ->
-            (s, None) :: acc, ts
+            (s.id, None) :: acc, ts
         | Some t ->
             let ts' = List.filter (fun xx -> xx <> t) ts
-            (s, Some t) :: acc, ts'
+            (s.id, Some t.id) :: acc, ts'
 
     List.fold step (List.empty, states) states
     |> fst
