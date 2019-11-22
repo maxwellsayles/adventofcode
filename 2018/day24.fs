@@ -20,13 +20,14 @@ let stringToAttack : string -> AttackType = function
     | "slashing" -> Slashing
     | unknown -> failwith <| sprintf "Unrecognized attack: \"%s\"" unknown
 
+type Id = int
 type Team = ImmuneSystem | Infection
 
 type State = {
     attackPoints: int
     attackType: AttackType
     hitPoints: int
-    id: int
+    id: Id
     immunities: Set<AttackType>
     initiative: int
     team: Team
