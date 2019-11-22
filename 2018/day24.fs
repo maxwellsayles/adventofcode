@@ -85,7 +85,7 @@ let parseLine (team: Team) (s: string) : State =
         }
     | _ -> failwith <| sprintf "Could not parse: %s" s
 
-let initStates =
+let initStates : list<State> =
     let lines = System.IO.File.ReadAllLines("day24-example.txt")
     let immune =
         Seq.takeWhile (fun (s: string) -> s.Length <> 0) lines
