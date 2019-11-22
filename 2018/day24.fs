@@ -44,6 +44,15 @@ type State = {
         then 2 * this.effectivePower
         else this.effectivePower
 
+    member this.attack (that: State) : State =
+        let dmg = this.damageTo that
+        let unitsLost = dmg / that.hitPoints
+        let units' = that.units - unitsLost |> max 0
+        { that with units = units' }
+
+    member this.isAlive : bool =
+        this.units > 0
+
 let selectionSortKey (s: State) =
     s.effectivePower, s.initiative
 
@@ -122,6 +131,25 @@ let selectionPhase (states: list<State>) : list<Id * option<Id>> =
 
     List.fold step (List.empty, states) states
     |> fst
+
+let attackPhase (states: list<State>) (selections: list<Id * option<Id>>) : list<State> =
+    let m =
+        List.map (fun s -> s.id, s) states
+        |> Map.ofList
+    let helper (acc: Map<Id, State>) (sid, otid) =
+        let s = Map.find sid acc
+        if s.isAlive then
+            match otid with
+            | None -> acc
+            | Some tid ->
+                let t = Map.find tid acc
+                let t' = s.attack t
+                Map.add tid t' acc
+        else
+            acc
+
+    // TODO: Implement me.
+    states
 
 [<EntryPoint>]
 let main args =
