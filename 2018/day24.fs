@@ -33,8 +33,8 @@ type State = {
     units: int
     weaknesses: Set<AttackType>
 } with
-    member this.team : Team =
-        fst this.id
+    member this.team : Team = fst this.id
+    member this.group : int = snd this.id
 
     member this.effectivePower =
         this.units * this.attackPoints
@@ -50,6 +50,7 @@ type State = {
         let dmg = this.damageTo that
         let unitsLost = dmg / that.hitPoints
         let units' = that.units - unitsLost |> max 0
+        printfn "%A group %d attacks %A group %d, killing %d units" this.team this.group that.team that.group unitsLost
         { that with units = units' }
 
     member this.isAlive : bool =
@@ -113,7 +114,9 @@ let initStates : list<State> =
     List.append immune infect
 
 let selectionPhase (states: list<State>) : list<Id * option<Id>> =
-    let states' = List.sortBy selectionSortKey states
+    let states' =
+        List.sortBy selectionSortKey states
+        |> List.rev
 
     let targetHelper (s: State) ts =
         let ts' = List.filter (fun (t: State) -> t.team <> s.team) ts
@@ -152,7 +155,12 @@ let attackPhase (states: list<State>) (selections: list<Id * option<Id>>) : list
         List.map (fun s -> s.id, s) states
         |> Map.ofList
 
-    List.fold helper initAcc selections
+    let selections' =
+        selections
+        |> List.sortBy (fun (sid, otid) -> Map.find sid initAcc |> fun s -> s.initiative)
+        |> List.rev
+
+    List.fold helper initAcc selections'
     |> Map.toList
     |> List.map snd
     |> List.filter (fun s -> s.isAlive)
@@ -169,7 +177,6 @@ let isGameOver (states: List<State>) : bool =
 let solve1 : int =
     let rec helper states =
         if isGameOver states then
-            printfn "%A" states
             List.map (fun s -> s.units) states
             |> List.sum
         else
