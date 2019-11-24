@@ -20,8 +20,8 @@ let stringToAttack : string -> AttackType = function
     | "slashing" -> Slashing
     | unknown -> failwith <| sprintf "Unrecognized attack: \"%s\"" unknown
 
-type Id = int
 type Team = ImmuneSystem | Infection
+type Id = Team * int
 
 type State = {
     attackPoints: int
@@ -30,10 +30,12 @@ type State = {
     id: Id
     immunities: Set<AttackType>
     initiative: int
-    team: Team
     units: int
     weaknesses: Set<AttackType>
 } with
+    member this.team : Team =
+        fst this.id
+
     member this.effectivePower =
         this.units * this.attackPoints
 
@@ -80,7 +82,7 @@ let parseWeaknessesAndImmunities (s: string) : Set<AttackType> * Set<AttackType>
         s.Split [|';'|]
         |> Array.fold step (Set.empty, Set.empty)
 
-let parseLine (id: int) (team: Team) (s: string) : State =
+let parseLine (id: Id) (s: string) : State =
     match s with
     | Regex @"(\d+) units each with (\d+) hit points (\(.*\) )?with an attack that does (\d+) (\w+) damage at initiative (\d+)" [units; hitPoints; extra; attackPoints; attackType; initiative] ->
         let weaknesses, immunities =
@@ -91,7 +93,6 @@ let parseLine (id: int) (team: Team) (s: string) : State =
           id = id
           immunities = immunities
           initiative = int initiative
-          team = team
           units = int units
           weaknesses = weaknesses
         }
@@ -103,24 +104,25 @@ let initStates : list<State> =
         Seq.takeWhile (fun (s: string) -> s.Length <> 0) lines
         |> List.ofSeq
         |> List.tail
-        |> List.mapi (fun i -> parseLine i ImmuneSystem)
-    let n = List.length immune
+        |> List.mapi (fun i -> parseLine (ImmuneSystem, i + 1))
     let infect =
         Seq.skip (Seq.length immune + 2) lines
         |> List.ofSeq
         |> List.tail
-        |> List.mapi (fun i -> parseLine (i + n) Infection)
+        |> List.mapi (fun i -> parseLine (Infection, i + 1))
     List.append immune infect
 
 let selectionPhase (states: list<State>) : list<Id * option<Id>> =
     let states' = List.sortBy selectionSortKey states
-    let targetHelper s ts =
-        let ts' = List.filter (fun t -> t.team <> s.team) ts
+
+    let targetHelper (s: State) ts =
+        let ts' = List.filter (fun (t: State) -> t.team <> s.team) ts
         if List.isEmpty ts' then
             None
         else
             List.maxBy (targetSortKey s) ts'
             |> Some
+
     let step (acc, ts) s =
         match targetHelper s ts with
         | None ->
@@ -159,7 +161,7 @@ let stepGame (states: List<State>) : list<State> =
     |> attackPhase states
 
 let isGameOver (states: List<State>) : bool =
-    Seq.groupBy (fun s -> s.team) states
+    Seq.groupBy (fun (s: State) -> s.team) states
     |> Seq.length
     |> fun n -> n = 1
 
