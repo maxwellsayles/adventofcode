@@ -133,9 +133,6 @@ let selectionPhase (states: list<State>) : list<Id * option<Id>> =
     |> fst
 
 let attackPhase (states: list<State>) (selections: list<Id * option<Id>>) : list<State> =
-    let m =
-        List.map (fun s -> s.id, s) states
-        |> Map.ofList
     let helper (acc: Map<Id, State>) (sid, otid) =
         let s = Map.find sid acc
         if s.isAlive then
@@ -148,8 +145,14 @@ let attackPhase (states: list<State>) (selections: list<Id * option<Id>>) : list
         else
             acc
 
-    // TODO: Implement me.
-    states
+    let initAcc =
+        List.map (fun s -> s.id, s) states
+        |> Map.ofList
+
+    List.fold helper initAcc selections
+    |> Map.toList
+    |> List.map snd
+    |> List.filter (fun s -> s.isAlive)
 
 [<EntryPoint>]
 let main args =
