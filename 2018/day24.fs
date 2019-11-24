@@ -154,10 +154,26 @@ let attackPhase (states: list<State>) (selections: list<Id * option<Id>>) : list
     |> List.map snd
     |> List.filter (fun s -> s.isAlive)
 
+let stepGame (states: List<State>) : list<State> =
+    selectionPhase states
+    |> attackPhase states
+
+let isGameOver (states: List<State>) : bool =
+    Seq.groupBy (fun s -> s.team) states
+    |> Seq.length
+    |> fun n -> n = 1
+
+let solve1 : int =
+    let rec helper states =
+        if isGameOver states then
+            printfn "%A" states
+            List.map (fun s -> s.units) states
+            |> List.sum
+        else
+            helper (stepGame states)
+    helper initStates
+
 [<EntryPoint>]
 let main args =
-    printfn "%A" initStates
-    printfn ""
-    printfn "%A" (selectionPhase initStates)
-
+    printfn "%d" solve1
     0
