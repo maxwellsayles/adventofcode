@@ -128,11 +128,12 @@ let selectionPhase (states: list<State>) : list<Id * option<Id>> =
         | None ->
             (s.id, None) :: acc, ts
         | Some t ->
-            let ts' = List.filter (fun xx -> xx <> t) ts
+            let ts' = List.filter (fun u -> u.id <> t.id) ts
             (s.id, Some t.id) :: acc, ts'
 
     List.fold step (List.empty, states) states
     |> fst
+    |> List.rev
 
 let attackPhase (states: list<State>) (selections: list<Id * option<Id>>) : list<State> =
     let helper (acc: Map<Id, State>) (sid, otid) =
