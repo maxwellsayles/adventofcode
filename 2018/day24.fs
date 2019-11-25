@@ -57,11 +57,11 @@ type State = {
     member this.isAlive : bool =
         this.units > 0
 
+    member this.targetSortKey (that: State) =
+        this.damageTo that, that.effectivePower, that.initiative
+
 let selectionSortKey (s: State) =
     s.effectivePower, s.initiative
-
-let targetSortKey (s: State) (t: State) =
-    s.damageTo t, t.effectivePower, t.initiative
     
 let parseWeaknessesAndImmunities (s: string) : Set<AttackType> * Set<AttackType> =
     let step (ws, is) s =
@@ -123,7 +123,7 @@ let selectionPhase (states: list<State>) : list<Id * Id> =
         let ts' = List.filter (fun (t: State) -> s.damageTo t > 0) ts
         if List.isEmpty ts'
         then None
-        else List.maxBy (targetSortKey s) ts' |> Some
+        else List.maxBy s.targetSortKey ts' |> Some
 
     let step (acc, ts) s =
         match targetHelper s ts with
