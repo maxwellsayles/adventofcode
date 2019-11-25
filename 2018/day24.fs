@@ -155,12 +155,10 @@ let attackPhase (states: list<State>) (selections: list<Id * option<Id>>) : list
         List.map (fun s -> s.id, s) states
         |> Map.ofList
 
-    let selections' =
-        selections
-        |> List.sortBy (fun (sid, otid) -> Map.find sid initAcc |> fun s -> s.initiative)
-        |> List.rev
-
-    List.fold helper initAcc selections'
+    selections
+    |> List.sortBy (fun (sid, _) -> Map.find sid initAcc |> fun s -> s.initiative)
+    |> List.rev
+    |> List.fold helper initAcc
     |> Map.toList
     |> List.map snd
     |> List.filter (fun s -> s.isAlive)
