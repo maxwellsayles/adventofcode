@@ -114,42 +114,37 @@ let initStates : list<State> =
         |> List.mapi (fun i -> parseLine (Infection, i + 1))
     List.append immune infect
 
-let selectionPhase (states: list<State>) : list<Id * option<Id>> =
+let selectionPhase (states: list<State>) : list<Id * Id> =
     let states' =
         List.sortBy selectionSortKey states
         |> List.rev
 
     let targetHelper (s: State) ts =
         let ts' = List.filter (fun (t: State) -> s.damageTo t > 0) ts
-        if List.isEmpty ts' then
-            None
-        else
-            List.maxBy (targetSortKey s) ts'
-            |> Some
+        if List.isEmpty ts'
+        then None
+        else List.maxBy (targetSortKey s) ts' |> Some
 
     let step (acc, ts) s =
         match targetHelper s ts with
-        | None ->
-            (s.id, None) :: acc, ts
+        | None -> acc, ts
         | Some t ->
             let ts' = List.filter (fun u -> u.id <> t.id) ts
-            (s.id, Some t.id) :: acc, ts'
+            (s.id, t.id) :: acc, ts'
 
     List.fold step (List.empty, states) states
     |> fst
 
-let attackPhase (states: list<State>) (selections: list<Id * option<Id>>) : list<State> =
-    let helper (acc: Map<Id, State>) (sid, otid) =
-        let s = Map.find sid acc
-        if s.isAlive then
-            match otid with
-            | None -> acc
-            | Some tid ->
-                let t = Map.find tid acc
-                let t' = s.attack t
-                Map.add tid t' acc
-        else
-            acc
+let attackPhase (states: list<State>) (selections: list<Id * Id>) : list<State> =
+    let helper (acc: Map<Id, State>) (sid, tid) =
+        match Map.tryFind sid acc, Map.tryFind tid acc with
+        | None, _ -> acc
+        | _, None -> acc
+        | Some s, Some t ->
+            let t' = s.attack t
+            if t'.isAlive
+            then Map.add t'.id t' acc
+            else Map.remove t'.id acc
 
     let initAcc =
         List.map (fun s -> s.id, s) states
@@ -161,7 +156,6 @@ let attackPhase (states: list<State>) (selections: list<Id * option<Id>>) : list
     |> List.fold helper initAcc
     |> Map.toList
     |> List.map snd
-    |> List.filter (fun s -> s.isAlive)
 
 let stepGame (states: List<State>) : list<State> =
     selectionPhase states
