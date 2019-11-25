@@ -40,7 +40,10 @@ type State = {
         this.units * this.attackPoints
 
     member this.damageTo (that: State) : int =
-        if this.team = that.team then 0
+        if this.team = that.team
+        then 0
+        elif not this.isAlive || not that.isAlive
+        then 0
         elif Set.contains this.attackType that.immunities
         then 0
         elif Set.contains this.attackType that.weaknesses
