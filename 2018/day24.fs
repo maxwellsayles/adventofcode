@@ -137,7 +137,6 @@ let selectionPhase (states: list<State>) : list<Id * option<Id>> =
 
     List.fold step (List.empty, states) states
     |> fst
-    |> List.rev
 
 let attackPhase (states: list<State>) (selections: list<Id * option<Id>>) : list<State> =
     let helper (acc: Map<Id, State>) (sid, otid) =
