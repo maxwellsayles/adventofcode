@@ -48,8 +48,8 @@ type State = {
 
     member this.attack (that: State) : State =
         let dmg = this.damageTo that
-        let unitsLost = dmg / that.hitPoints
-        let units' = that.units - unitsLost |> max 0
+        let unitsLost = min (dmg / that.hitPoints) that.units
+        let units' = that.units - unitsLost
         printfn "%A group %d attacks %A group %d, killing %d units" this.team this.group that.team that.group unitsLost
         { that with units = units' }
 
