@@ -40,7 +40,8 @@ type State = {
         this.units * this.attackPoints
 
     member this.damageTo (that: State) : int =
-        if Set.contains this.attackType that.immunities
+        if this.team = that.team then 0
+        elif Set.contains this.attackType that.immunities
         then 0
         elif Set.contains this.attackType that.weaknesses
         then 2 * this.effectivePower
@@ -119,7 +120,7 @@ let selectionPhase (states: list<State>) : list<Id * option<Id>> =
         |> List.rev
 
     let targetHelper (s: State) ts =
-        let ts' = List.filter (fun (t: State) -> t.team <> s.team) ts
+        let ts' = List.filter (fun (t: State) -> s.damageTo t > 0) ts
         if List.isEmpty ts' then
             None
         else
