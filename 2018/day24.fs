@@ -48,7 +48,7 @@ type State = {
 
     member this.attack (that: State) : State =
         let dmg = this.damageTo that
-        let unitsLost = min (dmg / that.hitPoints) that.units
+        let unitsLost = dmg / that.hitPoints |> min that.units
         let units' = that.units - unitsLost
         printfn "%A group %d attacks %A group %d, killing %d units" this.team this.group that.team that.group unitsLost
         { that with units = units' }
@@ -100,7 +100,7 @@ let parseLine (id: Id) (s: string) : State =
     | _ -> failwith <| sprintf "Could not parse: %s" s
 
 let initStates : list<State> =
-    let lines = System.IO.File.ReadAllLines("day24-example.txt")
+    let lines = System.IO.File.ReadAllLines("day24.txt")
     let immune =
         Seq.takeWhile (fun (s: string) -> s.Length <> 0) lines
         |> List.ofSeq
@@ -175,6 +175,7 @@ let isGameOver (states: List<State>) : bool =
 let solve1 : int =
     let rec helper states =
         if isGameOver states then
+            printfn "%A" states
             List.map (fun s -> s.units) states
             |> List.sum
         else
