@@ -141,13 +141,12 @@ let selectionPhase (states: list<State>) : list<Id * Id> =
 let attackPhase (states: list<State>) (selections: list<Id * Id>) : list<State> =
     let helper (acc: Map<Id, State>) (sid, tid) =
         match Map.tryFind sid acc, Map.tryFind tid acc with
-        | None, _ -> acc
-        | _, None -> acc
         | Some s, Some t ->
             let t' = s.attack t
             if t'.isAlive
             then Map.add t'.id t' acc
             else Map.remove t'.id acc
+        | _ -> acc
 
     let initAcc =
         List.map (fun s -> s.id, s) states
