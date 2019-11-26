@@ -162,12 +162,18 @@ let stepGame (states: List<State>) : list<State> =
     selectionPhase states
     |> attackPhase states
 
-let isGameOver (states: List<State>) : bool =
-    Seq.groupBy (fun (s: State) -> s.team) states
-    |> Seq.length
-    |> fun n -> n = 1
+let hasWinner (states: List<State>) : Option<Team> =
+    let grps = Seq.groupBy (fun (s: State) -> s.team) states
+    if Seq.length grps > 1
+    then None
+    else Seq.head grps |> fst |> Some
 
-let solve1 : int =
+let isGameOver (states: List<State>) : bool =
+    match hasWinner states with
+    | Some _ -> true
+    | None -> false
+
+let solve1 () : int =
     let rec helper states =
         if isGameOver states then
             List.map (fun s -> s.units) states
@@ -176,7 +182,29 @@ let solve1 : int =
             helper (stepGame states)
     helper initStates
 
+let boostImmuneSystem1 (states : list<State>) : list<State> =
+    let helper (s: State) =
+        if s.team = ImmuneSystem
+        then { s with attackPoints = s.attackPoints + 1 }
+        else s
+    List.map helper states
+
+let solve2 () : int =
+    let rec gameLoop states =
+        match hasWinner states with
+        | Some ImmuneSystem -> Some states
+        | Some _ -> None
+        | _ -> gameLoop (stepGame states)
+
+    let rec boostLoop states =
+        match gameLoop states with
+        | Some states -> List.map (fun s -> s.units) states |> List.sum
+        | _ -> boostLoop (boostImmuneSystem1 states)
+
+    boostLoop initStates
+
 [<EntryPoint>]
 let main args =
-    printfn "%d" solve1
+    printfn "%d" (solve1 ())
+    printfn "%d" (solve2 ())
     0
