@@ -118,10 +118,6 @@ let initStates : list<State> =
     List.append immune infect
 
 let selectionPhase (states: list<State>) : list<Id * Id> =
-    let states' =
-        List.sortBy selectionSortKey states
-        |> List.rev
-
     let targetHelper (s: State) ts =
         let ts' = List.filter (fun (t: State) -> s.damageTo t > 0) ts
         if List.isEmpty ts'
@@ -135,7 +131,10 @@ let selectionPhase (states: list<State>) : list<Id * Id> =
             let ts' = List.filter (fun u -> u.id <> t.id) ts
             (s.id, t.id) :: acc, ts'
 
-    List.fold step (List.empty, states) states'
+    states
+    |> List.sortBy selectionSortKey
+    |> List.rev
+    |> List.fold step (List.empty, states)
     |> fst
 
 let attackPhase (states: list<State>) (selections: list<Id * Id>) : list<State> =
