@@ -54,7 +54,7 @@ type State = {
         let dmg = this.damageTo that
         let unitsLost = dmg / that.hitPoints |> min that.units
         let units' = that.units - unitsLost
-        printfn "%A group %d attacks %A group %d, killing %d units" this.team this.group that.team that.group unitsLost
+//        printfn "%A group %d attacks %A group %d, killing %d units" this.team this.group that.team that.group unitsLost
         { that with units = units' }
 
     member this.isAlive : bool =
@@ -135,7 +135,7 @@ let selectionPhase (states: list<State>) : list<Id * Id> =
             let ts' = List.filter (fun u -> u.id <> t.id) ts
             (s.id, t.id) :: acc, ts'
 
-    List.fold step (List.empty, states) states
+    List.fold step (List.empty, states) states'
     |> fst
 
 let attackPhase (states: list<State>) (selections: list<Id * Id>) : list<State> =
@@ -171,7 +171,6 @@ let isGameOver (states: List<State>) : bool =
 let solve1 : int =
     let rec helper states =
         if isGameOver states then
-            printfn "%A" states
             List.map (fun s -> s.units) states
             |> List.sum
         else
