@@ -190,14 +190,20 @@ let boostImmuneSystem1 (states : list<State>) : list<State> =
     List.map helper states
 
 let solve2 () : int =
-    let rec gameLoop states =
-        match hasWinner states with
-        | Some ImmuneSystem -> Some states
-        | Some _ -> None
-        | _ -> gameLoop (stepGame states)
+    let rec gameLoop lastState states =
+        let lastState' =
+            List.map (fun s -> s.id, s.units) states
+            |> Map.ofList
+        if lastState' = lastState then
+            None
+        else
+            match hasWinner states with
+            | Some ImmuneSystem -> Some states
+            | Some _ -> None
+            | _ -> gameLoop lastState' (stepGame states)
 
     let rec boostLoop states =
-        match gameLoop states with
+        match gameLoop Map.empty states with
         | Some states -> List.map (fun s -> s.units) states |> List.sum
         | _ -> boostLoop (boostImmuneSystem1 states)
 
