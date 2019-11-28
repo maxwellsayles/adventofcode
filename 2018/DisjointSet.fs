@@ -9,7 +9,7 @@ let empty : DisjointSet<'T> =
     { ids = Map.empty; parents = Map.empty }
 
 let add (x: 'T) (ds: DisjointSet<'T>) : DisjointSet<'T> =
-    let newId = 1 + Seq.length ds.ids
+    let newId = Seq.length ds.ids
     {
         ids = Map.add x newId ds.ids
         parents = Map.add newId newId ds.parents
@@ -17,7 +17,7 @@ let add (x: 'T) (ds: DisjointSet<'T>) : DisjointSet<'T> =
 
 let ofList (xs: list<'T>) : DisjointSet<'T> =
     {
-        ids = List.mapi (fun i x -> x, i) xs |> Map.ofList;
+        ids = List.mapi (fun i x -> x, i) xs |> Map.ofList
         parents = List.mapi (fun i _ -> i, i) xs |> Map.ofList
     }
 
