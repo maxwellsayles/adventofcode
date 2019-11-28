@@ -1,10 +1,6 @@
 (**
  * Build with
- * $ fsharpc -a Ring.fs
- * $ fsharpc --reference:Ring.dll day09.fs
- *
- * or as a single command line:
- * $ fsharpc -a Ring.fs && fsharpc --reference:Ring.dll day09.fs && ./day09.exe
+ * $ fsharpc Ring.fs day09.fs -o day09.exe
  *)
 
 open Ring
@@ -19,14 +15,14 @@ let step x ring =
         Ring.spinCCW 2 ring
         |> Ring.push x
         |> fun ring -> 0, ring
-    else 
+    else
         let ring' = Ring.spinCW 7 ring
         x + Ring.top ring', Ring.pop ring'
 
 let rec gameStep x ring (scores: Map<int, uint64>) =
     if x = numMarbles + 1
     then scores // Game over!
-    else 
+    else
         let score, ring' = step x ring
         let player = (x % numPlayers) + 1
         let scores' = Map.add player (scores.[player] + uint64 score) scores
