@@ -1,3 +1,11 @@
+(**
+ * This is a specialized implementation of a disjoint set. In particular this
+ * is intended for a four phase use case. The first use case populates the
+ * set members, the second phase creates the equivalance classes, the third
+ * phase compresses the data structure, and the fourth phase queries the number
+ * of equivalent classes. This is not meant to be general purpose or efficient.
+ *)
+
 module DisjointSet
 
 type DisjointSet<'T when 'T : comparison> = {
@@ -37,8 +45,15 @@ let private compressPath (x: 'T) (root: int) (ds: DisjointSet<'T>) : DisjointSet
     let ids' = Map.add x root ds.ids
     { ids = ids'; parents = parents' }
 
-let union (x: 'T) (y: 'T) (ds: DisjointSet<'T>): DisjointSet<'T> =
+let makeEquivalent (x: 'T) (y: 'T) (ds: DisjointSet<'T>) : DisjointSet<'T> =
     let xr = findRoot x ds
     compressPath x xr ds |> compressPath y xr
 
+let compressAll (ds: DisjointSet<'T>) : DisjointSet<'T> =
+    let helper ds x = compressPath x (findRoot x ds) ds
+    List.fold helper ds (Map.toList ds.ids |> List.map fst)
 
+let countEquivalenceClasses (ds: DisjointSet<'T>) : int =
+    Map.toList ds.parents
+    |> List.filter (fun (i, j) -> i = j)
+    |> List.length
