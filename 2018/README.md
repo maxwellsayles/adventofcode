@@ -1,0 +1,1 @@
+Hacky solutions for AOC2018 in F#. Fun. Annoying. And I finished just before AOC2019 came out ;)
