@@ -1,0 +1,1 @@
+Going to try Rust for AOC this year. This will be a set of hacky solutions in Rust. I've never coded in Rust, so my solutions are likely to suck, and I'm super slow and don't have much time, so we'll see when I finish, but should be a good opportunity to try something new. Best wishes!
