@@ -1,3 +1,4 @@
+use std::assert;
 use std::fs;
 
 fn run(mut code: Vec<i32>, ip: usize) -> Vec<i32> {
@@ -14,6 +15,8 @@ fn run(mut code: Vec<i32>, ip: usize) -> Vec<i32> {
         code[t] = x * y;
     } else if instr == 99 {
         return code;
+    } else {
+        assert!(false, "Unknown opcode");
     }
     run(code, ip + 4)
 }
