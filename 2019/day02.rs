@@ -27,6 +27,23 @@ fn solve1(mut code: Vec<usize>) -> usize {
     run(code, 0)[0]
 }
 
+const TARGET: usize = 19690720;
+
+fn solve2(code: Vec<usize>) -> usize {
+    for noun in 0..99 {
+        for verb in 0..99 {
+            let mut mcode = code.clone();
+            mcode[1] = noun;
+            mcode[2] = verb;
+            if run(mcode, 0)[0] == TARGET {
+                return noun * 100 + verb;
+            }
+        }
+    }
+    assert!(false, "Failed to find a solution!");
+    0
+}
+
 fn main() {
     let contents = fs::read_to_string("day02.txt")
         .expect("WTF");
@@ -37,4 +54,5 @@ fn main() {
         .collect();
 
     println!("{}", solve1(input.clone()));
+    println!("{}", solve2(input.clone()));
 }
