@@ -1,7 +1,7 @@
 use std::assert;
 use std::fs;
 
-fn run(mut code: Vec<i32>, ip: usize) -> Vec<i32> {
+fn run(mut code: Vec<usize>, ip: usize) -> Vec<usize> {
     let instr = code[ip];
     if instr == 1 {
         let x = code[ip + 1];
@@ -21,7 +21,7 @@ fn run(mut code: Vec<i32>, ip: usize) -> Vec<i32> {
     run(code, ip + 4)
 }
 
-fn solve1(mut code: Vec<i32>) -> i32 {
+fn solve1(mut code: Vec<usize>) -> usize {
     code[1] = 12;
     code[2] = 2;
     run(code, 0)[0]
@@ -31,9 +31,9 @@ fn main() {
     let contents = fs::read_to_string("day02.txt")
         .expect("WTF");
 
-    let input: Vec<i32> = contents
+    let input: Vec<usize> = contents
         .split(',')
-        .map(|s| s.trim().parse::<i32>().expect("WTF"))
+        .map(|s| s.trim().parse::<usize>().expect("WTF"))
         .collect();
 
     println!("{}", solve1(input.clone()));
