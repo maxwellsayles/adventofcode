@@ -6,13 +6,13 @@ fn run(mut code: Vec<usize>, ip: usize) -> Vec<usize> {
     if instr == 1 {
         let x = code[ip + 1];
         let y = code[ip + 2];
-        let t = code[ip + 3] as usize;
-        code[t] = x + y;
+        let t = code[ip + 3];
+        code[t] = code[x] + code[y];
     } else if instr == 2 {
         let x = code[ip + 1];
         let y = code[ip + 2];
-        let t = code[ip + 3] as usize;
-        code[t] = x * y;
+        let t = code[ip + 3];
+        code[t] = code[x] * code[y];
     } else if instr == 99 {
         return code;
     } else {
