@@ -16,7 +16,7 @@ fn run(mut code: Vec<i32>, ip: usize) -> Vec<i32> {
     } else if instr == 99 {
         return code;
     } else {
-        assert!(false, "Unknown opcode");
+        assert!(false, "Unknown opcode {}", instr);
     }
     run(code, ip + 4)
 }
