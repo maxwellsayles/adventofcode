@@ -14,10 +14,11 @@ fn fuelr(mass: i32, acc: i32) -> i32 {
 }
 
 fn main() {
-    let contents = fs::read_to_string("day01.txt").expect("WTF");
+    let contents = fs::read_to_string("day01.txt")
+        .unwrap();
     let lines = contents
         .lines()
-        .map(|x| x.parse::<i32>().expect("WTF"));
+        .map(|x| x.parse::<i32>().unwrap());
 
     let solve1: i32 = lines
         .clone()
