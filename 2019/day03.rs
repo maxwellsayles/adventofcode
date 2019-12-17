@@ -38,12 +38,20 @@ fn parse_line(s: &str) -> Vec<Step> {
         .collect()
 }
 
-fn move_point(p: Point, s: Step) -> Point {
+fn make_points(p: &Point, s: &Step) -> Vec<Point> {
     match s.0 {
-        Dir::Up => (p.0, p.1 - s.1),
-        Dir::Down => (p.0, p.1 + s.1),
-        Dir::Left => (p.0 - s.1, p.1),
-        Dir::Right => (p.0 + s.1, p.1),
+        Dir::Up => ((p.1 - s.1)..=p.1).rev()
+            .map(|y| (p.0, y))
+            .collect(),
+        Dir::Down => (p.1..=(p.1 + s.1))
+            .map(|y| (p.0, y))
+            .collect(),
+        Dir::Left => ((p.0 - s.1)..=p.0).rev()
+            .map(|x| (x, p.1))
+            .collect(),
+        Dir::Right => (p.0..=(p.0 + s.1))
+            .map(|x| (x, p.1))
+            .collect(),
     }
 }
 
@@ -53,7 +61,7 @@ fn main() {
     let lines = f.lines()
         .map(parse_line);
 
-    for x in lines {
+    for x in (2..=10).rev() {
         println!("{:?}", x);
     }
 }
