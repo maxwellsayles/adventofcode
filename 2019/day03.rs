@@ -87,6 +87,6 @@ fn main() {
 
     let p = common_points.min_by(|a, b| dist(a).cmp(&dist(b)))
         .unwrap();
-    let d = p.0.abs() + p.1.abs();
+    let d = dist(p);
     println!("{}", d);
 }
