@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 use std::fs;
-//use std::iter::FromIterator;
 
 #[derive(Debug)]
 enum Dir {
