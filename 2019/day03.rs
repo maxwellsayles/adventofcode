@@ -73,10 +73,10 @@ fn make_path(steps: &Vec<Step>) -> Vec<Point> {
     path
 }
 
-fn solve1(line0: &Vec<Step>, line1: &Vec<Step>) -> i32 {
-    let path0 = make_path(line0);
+fn solve1(input0: &Vec<Step>, input1: &Vec<Step>) -> i32 {
+    let path0 = make_path(input0);
     let hash0: HashSet<&Point> = path0.iter().collect();
-    let path1 = make_path(line1);
+    let path1 = make_path(input1);
     let hash1: HashSet<&Point> = path1.iter().collect();
     let common_points = hash0.intersection(&hash1);
 
@@ -88,9 +88,9 @@ fn solve1(line0: &Vec<Step>, line1: &Vec<Step>) -> i32 {
 fn main() {
     let f = fs::read_to_string("day03.txt")
         .unwrap();
-    let lines: Vec<Vec<Step>> = f.lines()
+    let input: Vec<Vec<Step>> = f.lines()
         .map(parse_line)
         .collect();
 
-    println!("{}", solve1(&lines[0], &lines[1]));
+    println!("{}", solve1(&input[0], &input[1]));
 }
