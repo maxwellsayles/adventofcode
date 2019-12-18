@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::fs;
-use std::iter::FromIterator;
+//use std::iter::FromIterator;
 
 #[derive(Debug)]
 enum Dir {
@@ -61,7 +61,7 @@ fn make_points(p: &Point, s: &Step) -> Vec<Point> {
     }
 }
 
-fn make_path(steps: &Vec<Step>) -> HashSet<Point> {
+fn make_path(steps: &Vec<Step>) -> Vec<Point> {
     let mut p = (0, 0);
     let mut path: Vec<Point> = Vec::new();
     for s in steps {
@@ -69,9 +69,20 @@ fn make_path(steps: &Vec<Step>) -> HashSet<Point> {
         p = *ps.last().unwrap();
         path.append(&mut ps);
     }
-    let mut h = HashSet::from_iter(path.iter().cloned());
-    h.remove(&(0, 0));
-    h
+    path.remove(0);
+    path
+}
+
+fn solve1(line0: &Vec<Step>, line1: &Vec<Step>) -> i32 {
+    let path0 = make_path(line0);
+    let hash0: HashSet<&Point> = path0.iter().collect();
+    let path1 = make_path(line1);
+    let hash1: HashSet<&Point> = path1.iter().collect();
+    let common_points = hash0.intersection(&hash1);
+
+    let p = common_points.min_by(|a, b| dist(a).cmp(&dist(b)))
+        .unwrap();
+    dist(p)
 }
 
 fn main() {
@@ -81,12 +92,5 @@ fn main() {
         .map(parse_line)
         .collect();
 
-    let path0 = make_path(&lines[0]);
-    let path1 = make_path(&lines[1]);
-    let common_points = path0.intersection(&path1);
-
-    let p = common_points.min_by(|a, b| dist(a).cmp(&dist(b)))
-        .unwrap();
-    let d = dist(p);
-    println!("{}", d);
+    println!("{}", solve1(&lines[0], &lines[1]));
 }
