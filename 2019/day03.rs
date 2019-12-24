@@ -71,13 +71,10 @@ fn make_path(steps: &Vec<Step>) -> Vec<Point> {
     path
 }
 
-fn solve1(input0: &Vec<Step>, input1: &Vec<Step>) -> i32 {
-    let path0 = make_path(input0);
+fn solve1(path0: &Vec<Point>, path1: &Vec<Point>) -> i32 {
     let hash0: HashSet<&Point> = path0.iter().collect();
-    let path1 = make_path(input1);
     let hash1: HashSet<&Point> = path1.iter().collect();
     let common_points = hash0.intersection(&hash1);
-
     let p = common_points.min_by(|a, b| dist(a).cmp(&dist(b)))
         .unwrap();
     dist(p)
@@ -90,5 +87,8 @@ fn main() {
         .map(parse_line)
         .collect();
 
-    println!("{}", solve1(&input[0], &input[1]));
+    let path0 = make_path(&input[0]);
+    let path1 = make_path(&input[1]);
+
+    println!("{}", solve1(&path0, &path1));
 }
