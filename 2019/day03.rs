@@ -88,8 +88,8 @@ fn solve2(path0: &Vec<Point>, path1: &Vec<Point>) -> i32 {
     let hs1: HashMap<_, _> = path1.iter().zip(1..(n1 + 1)).rev().collect();
     let s0: HashSet<_> = path0.iter().collect();
     let s1: HashSet<_> = path1.iter().collect();
-    let common_points = s0.intersection(&s1);
-    common_points.map(|p| hs0.get(p).unwrap() + hs1.get(p).unwrap())
+    s0.intersection(&s1)
+        .map(|p| hs0.get(p).unwrap() + hs1.get(p).unwrap())
         .min()
         .unwrap()
         as i32
