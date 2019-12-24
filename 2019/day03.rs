@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 use std::fs;
-//use std::iter::FromIterator;
 
 #[derive(Debug)]
 enum Dir {
@@ -46,16 +45,16 @@ fn parse_line(s: &str) -> Vec<Step> {
 
 fn make_points(p: &Point, s: &Step) -> Vec<Point> {
     match s.0 {
-        Dir::Up => ((p.1 - s.1)..=p.1).rev()
+        Dir::Up => ((p.1 - s.1)..p.1).rev()
             .map(|y| (p.0, y))
             .collect(),
-        Dir::Down => (p.1..=(p.1 + s.1))
+        Dir::Down => ((p.1 + 1)..=(p.1 + s.1))
             .map(|y| (p.0, y))
             .collect(),
-        Dir::Left => ((p.0 - s.1)..=p.0).rev()
+        Dir::Left => ((p.0 - s.1)..p.0).rev()
             .map(|x| (x, p.1))
             .collect(),
-        Dir::Right => (p.0..=(p.0 + s.1))
+        Dir::Right => ((p.0 + 1)..=(p.0 + s.1))
             .map(|x| (x, p.1))
             .collect(),
     }
@@ -69,7 +68,6 @@ fn make_path(steps: &Vec<Step>) -> Vec<Point> {
         p = *ps.last().unwrap();
         path.append(&mut ps);
     }
-    path.remove(0);
     path
 }
 
