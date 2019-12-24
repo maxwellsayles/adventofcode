@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs;
 
@@ -80,6 +81,20 @@ fn solve1(path0: &Vec<Point>, path1: &Vec<Point>) -> i32 {
     dist(p)
 }
 
+fn solve2(path0: &Vec<Point>, path1: &Vec<Point>) -> i32 {
+    let n0 = path0.len();
+    let n1 = path1.len();
+    let hs0: HashMap<_, _> = path0.iter().zip(1..(n0 + 1)).rev().collect();
+    let hs1: HashMap<_, _> = path1.iter().zip(1..(n1 + 1)).rev().collect();
+    let s0: HashSet<&Point> = path0.iter().collect();
+    let s1: HashSet<&Point> = path1.iter().collect();
+    let common_points = s0.intersection(&s1);
+    common_points.map(|p| hs0.get(p).unwrap() + hs1.get(p).unwrap())
+        .min()
+        .unwrap()
+        as i32
+}
+
 fn main() {
     let f = fs::read_to_string("day03.txt")
         .unwrap();
@@ -91,4 +106,5 @@ fn main() {
     let path1 = make_path(&input[1]);
 
     println!("{}", solve1(&path0, &path1));
+    println!("{}", solve2(&path0, &path1));
 }
