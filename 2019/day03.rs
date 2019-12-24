@@ -73,8 +73,8 @@ fn make_path(steps: &Vec<Step>) -> Vec<Point> {
 }
 
 fn solve1(path0: &Vec<Point>, path1: &Vec<Point>) -> i32 {
-    let hash0: HashSet<&Point> = path0.iter().collect();
-    let hash1: HashSet<&Point> = path1.iter().collect();
+    let hash0: HashSet<_> = path0.iter().collect();
+    let hash1: HashSet<_> = path1.iter().collect();
     let common_points = hash0.intersection(&hash1);
     let p = common_points.min_by(|a, b| dist(a).cmp(&dist(b)))
         .unwrap();
@@ -86,8 +86,8 @@ fn solve2(path0: &Vec<Point>, path1: &Vec<Point>) -> i32 {
     let n1 = path1.len();
     let hs0: HashMap<_, _> = path0.iter().zip(1..(n0 + 1)).rev().collect();
     let hs1: HashMap<_, _> = path1.iter().zip(1..(n1 + 1)).rev().collect();
-    let s0: HashSet<&Point> = path0.iter().collect();
-    let s1: HashSet<&Point> = path1.iter().collect();
+    let s0: HashSet<_> = path0.iter().collect();
+    let s1: HashSet<_> = path1.iter().collect();
     let common_points = s0.intersection(&s1);
     common_points.map(|p| hs0.get(p).unwrap() + hs1.get(p).unwrap())
         .min()
