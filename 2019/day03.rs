@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs;
 
@@ -45,16 +46,16 @@ fn parse_line(s: &str) -> Vec<Step> {
 
 fn make_points(p: &Point, s: &Step) -> Vec<Point> {
     match s.0 {
-        Dir::Up => ((p.1 - s.1)..=p.1).rev()
+        Dir::Up => ((p.1 - s.1)..p.1).rev()
             .map(|y| (p.0, y))
             .collect(),
-        Dir::Down => (p.1..=(p.1 + s.1))
+        Dir::Down => ((p.1 + 1)..=(p.1 + s.1))
             .map(|y| (p.0, y))
             .collect(),
-        Dir::Left => ((p.0 - s.1)..=p.0).rev()
+        Dir::Left => ((p.0 - s.1)..p.0).rev()
             .map(|x| (x, p.1))
             .collect(),
-        Dir::Right => (p.0..=(p.0 + s.1))
+        Dir::Right => ((p.0 + 1)..=(p.0 + s.1))
             .map(|x| (x, p.1))
             .collect(),
     }
@@ -68,20 +69,30 @@ fn make_path(steps: &Vec<Step>) -> Vec<Point> {
         p = *ps.last().unwrap();
         path.append(&mut ps);
     }
-    path.remove(0);
     path
 }
 
-fn solve1(input0: &Vec<Step>, input1: &Vec<Step>) -> i32 {
-    let path0 = make_path(input0);
-    let hash0: HashSet<&Point> = path0.iter().collect();
-    let path1 = make_path(input1);
-    let hash1: HashSet<&Point> = path1.iter().collect();
+fn solve1(path0: &Vec<Point>, path1: &Vec<Point>) -> i32 {
+    let hash0: HashSet<_> = path0.iter().collect();
+    let hash1: HashSet<_> = path1.iter().collect();
     let common_points = hash0.intersection(&hash1);
-
     let p = common_points.min_by(|a, b| dist(a).cmp(&dist(b)))
         .unwrap();
     dist(p)
+}
+
+fn solve2(path0: &Vec<Point>, path1: &Vec<Point>) -> i32 {
+    let n0 = path0.len();
+    let n1 = path1.len();
+    let hs0: HashMap<_, _> = path0.iter().zip(1..(n0 + 1)).rev().collect();
+    let hs1: HashMap<_, _> = path1.iter().zip(1..(n1 + 1)).rev().collect();
+    let s0: HashSet<_> = path0.iter().collect();
+    let s1: HashSet<_> = path1.iter().collect();
+    s0.intersection(&s1)
+        .map(|p| hs0.get(p).unwrap() + hs1.get(p).unwrap())
+        .min()
+        .unwrap()
+        as i32
 }
 
 fn main() {
@@ -91,5 +102,9 @@ fn main() {
         .map(parse_line)
         .collect();
 
-    println!("{}", solve1(&input[0], &input[1]));
+    let path0 = make_path(&input[0]);
+    let path1 = make_path(&input[1]);
+
+    println!("{}", solve1(&path0, &path1));
+    println!("{}", solve2(&path0, &path1));
 }
