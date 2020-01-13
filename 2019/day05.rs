@@ -1,6 +1,5 @@
 use std::assert;
 use std::fs;
-use std::io::{self, Read};
 
 fn lookup(code: &Vec<i64>, val: i64, mode: i64) -> i64 {
     if mode == 0 {
@@ -12,7 +11,7 @@ fn lookup(code: &Vec<i64>, val: i64, mode: i64) -> i64 {
 
 fn read_int() -> i64 {
     let mut buffer = String::new();
-    io::stdin().read_to_string(&mut buffer).unwrap();
+    std::io::stdin().read_line(&mut buffer).unwrap();
     buffer.trim().parse::<i64>().unwrap()
 }
 
@@ -53,10 +52,10 @@ fn run(code: &mut Vec<i64>, ip: usize) {
 fn main() {
     let contents = fs::read_to_string("day05.txt")
         .unwrap();
-    let input: Vec<i64> = contents
+    let mut input: Vec<i64> = contents
         .split(',')
         .map(|s| s.trim().parse::<i64>().unwrap())
         .collect();
 
-    run(input, 0);
+    run(&mut input, 0);
 }
