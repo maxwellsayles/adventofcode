@@ -44,6 +44,38 @@ fn run(code: &mut Vec<i64>, ip: usize) {
             println!("{}", x);
             run(code, ip + 2);
         },
+        5 => {
+            let p = lookup(code, code[ip + 1], mode1);
+            let ip2 = if p != 0 {
+                lookup(code, code[ip + 2], mode2) as usize
+            } else {
+                ip + 3
+            };
+            run(code, ip2);
+        },
+        6 => {
+            let p = lookup(code, code[ip + 1], mode1);
+            let ip2 = if p == 0 {
+                lookup(code, code[ip + 2], mode2) as usize
+            } else {
+                ip + 3
+            };
+            run(code, ip2);            
+        },
+        7 => {
+            let x = lookup(code, code[ip + 1], mode1);
+            let y = lookup(code, code[ip + 2], mode2);
+            let t = code[ip + 3] as usize;
+            code[t] = if x < y { 1 } else { 0 };
+            run(code, ip + 4);
+        },
+        8 => {
+            let x = lookup(code, code[ip + 1], mode1);
+            let y = lookup(code, code[ip + 2], mode2);
+            let t = code[ip + 3] as usize;
+            code[t] = if x == y { 1 } else { 0 };
+            run(code, ip + 4);
+        },
         99 => return,
         _ => assert!(false, "Unknown opcode {}", instr),
     }
