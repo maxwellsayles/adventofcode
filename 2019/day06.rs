@@ -16,14 +16,13 @@ fn compute_pair_depths<'a>(
     orbits: &HashMap<&'a str, &'a str>,
 ) -> HashMap<(&'a str, &'a str), i64> {
     let mut res = HashMap::new();
-    let srcs = orbits.keys().map(|x| *x);
-    for src in srcs {
+    for src in orbits.keys() {
         let mut d: i64 = 0;
-        let mut dst = src;
+        let mut dst = *src;
         while dst != "COM" {
             dst = orbits.get(dst).unwrap();
             d += 1;
-            res.insert((src, dst), d);
+            res.insert((*src, dst), d);
         }
     }
     res
