@@ -16,7 +16,7 @@ fn compute_pair_depths<'a>(
     orbits: &HashMap<&'a str, &'a str>,
 ) -> HashMap<(&'a str, &'a str), i64> {
     let mut res = HashMap::new();
-    let srcs = orbits.keys().map(|x| x.clone());
+    let srcs = orbits.keys().map(|x| *x);
     for src in srcs {
         let mut d: i64 = 0;
         let mut dst = src;
@@ -36,8 +36,8 @@ fn distance_between(
 ) -> i64 {
     let mut best = std::i64::MAX;
     for ((a, b), dist_src) in pair_depths.iter() {
-        if a.clone() == src {
-            if let Some(dist_dst) = pair_depths.get(&(dst, b.clone())) {
+        if *a == src {
+            if let Some(dist_dst) = pair_depths.get(&(dst, *b)) {
                 best = cmp::min(best, dist_src + dist_dst - 2);
             }
         }
