@@ -12,31 +12,33 @@ fn depth(orbits: &HashMap<&str, &str>, node: &str) -> i64 {
     d
 }
 
-fn compute_pair_depths<'a>(
+fn compute_depth<'a>(
     orbits: &HashMap<&'a str, &'a str>,
-) -> HashMap<(&'a str, &'a str), i64> {
-    let mut res = HashMap::new();
-    for src in orbits.keys() {
-        let mut d: i64 = 0;
-        let mut dst = *src;
-        while dst != "COM" {
-            dst = orbits.get(dst).unwrap();
-            d += 1;
-            res.insert((*src, dst), d);
-        }
+    depths: &mut HashMap<(&'a str, &'a str), i64>,
+    src: &'a str,
+) {
+    let mut d: i64 = 0;
+    let mut n = src;
+    while n != "COM" {
+        n = orbits.get(n).unwrap();
+        d += 1;
+        depths.insert((src, n), d);
     }
-    res
 }
 
 fn distance_between(
-    pair_depths: &HashMap<(&str, &str), i64>,
+    orbits: &HashMap<&str, &str>,
     src: &str,
     dst: &str,
 ) -> i64 {
+    let mut depths = HashMap::new();
+    compute_depth(&orbits, &mut depths, "YOU");
+    compute_depth(&orbits, &mut depths, "SAN");
+
     let mut best = std::i64::MAX;
-    for ((a, b), dist_src) in pair_depths.iter() {
+    for ((a, b), dist_src) in depths.iter() {
         if *a == src {
-            if let Some(dist_dst) = pair_depths.get(&(dst, *b)) {
+            if let Some(dist_dst) = depths.get(&(dst, *b)) {
                 best = cmp::min(best, dist_src + dist_dst - 2);
             }
         }
@@ -58,7 +60,6 @@ fn main() {
         .sum();
     println!("{}", solve1);
 
-    let pair_depths = compute_pair_depths(&input);
-    let d = distance_between(&pair_depths, "YOU", "SAN");
+    let d = distance_between(&input, "YOU", "SAN");
     println!("{}", d);
 }
