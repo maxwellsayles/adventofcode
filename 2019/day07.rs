@@ -1,20 +1,23 @@
-use std::assert;
 use std::collections::VecDeque;
 use std::fs;
 // use itertools::Itertools;
 
 struct IntcodeComputer {
     inputs: VecDeque<i64>,
+    outputs: VecDeque<i64>,
     code: Vec<i64>,
     ip: usize,
+    halted: bool,
 }
 
 impl IntcodeComputer {
     fn new(inputs: VecDeque<i64>, code: Vec<i64>) -> Self {
 	Self {
 	    inputs: inputs,
+	    outputs: VecDeque::new(),
 	    code: code,
-	    ip: 0
+	    ip: 0,
+	    halted: false,
 	}
     }
 
@@ -26,7 +29,7 @@ impl IntcodeComputer {
 	}
     }
 
-    fn step(&mut self) -> bool {
+    fn step(&mut self) {
 	let instr = self.code[self.ip];
 	let mode1 = (instr / 100) % 2;
 	let mode2 = (instr / 1000) % 2;
@@ -37,7 +40,6 @@ impl IntcodeComputer {
 		let t = self.code[self.ip + 3] as usize;
 		self.code[t] = x + y;
 		self.ip += 4;
-		true
             },
             2 => {
 		let x = self.lookup(self.code[self.ip + 1], mode1);
@@ -45,7 +47,6 @@ impl IntcodeComputer {
 		let t = self.code[self.ip + 3] as usize;
 		self.code[t] = x * y;
 		self.ip += 4;
-		true
             },
             3 => {
 		let t = self.code[self.ip + 1] as usize;
@@ -54,13 +55,11 @@ impl IntcodeComputer {
 		    _ => panic!("Expected more inputs!"),
 		};
 		self.ip += 2;
-		true
             },
             4 => {
 		let x = self.lookup(self.code[self.ip + 1], mode1);
-		println!("{}", x);
+		self.outputs.push_back(x);
 		self.ip += 2;
-		true
             },
             5 => {
 		let p = self.lookup(self.code[self.ip + 1], mode1);
@@ -69,7 +68,6 @@ impl IntcodeComputer {
 		} else {
                     self.ip + 3
 		};
-		true
             },
             6 => {
 		let p = self.lookup(self.code[self.ip + 1], mode1);
@@ -78,7 +76,6 @@ impl IntcodeComputer {
 		} else {
                     self.ip + 3
 		};
-		true
             },
             7 => {
 		let x = self.lookup(self.code[self.ip + 1], mode1);
@@ -86,7 +83,6 @@ impl IntcodeComputer {
 		let t = self.code[self.ip + 3] as usize;
 		self.code[t] = if x < y { 1 } else { 0 };
 		self.ip += 4;
-		true
             },
             8 => {
 		let x = self.lookup(self.code[self.ip + 1], mode1);
@@ -94,21 +90,15 @@ impl IntcodeComputer {
 		let t = self.code[self.ip + 3] as usize;
 		self.code[t] = if x == y { 1 } else { 0 };
 		self.ip += 4;
-		true
             },
-            99 => false,
-            _ => {
-		assert!(false, "Unknown opcode {}", instr);
-		false
-	    },
+            99 => self.halted = true,
+            _ => panic!("Unknown opcode {}", instr),
 	}
     }
 
     fn run(&mut self) {
-	self.ip = 0;
-	let mut looping = true;
-	while looping {
-	    looping = self.step();
+	while !self.halted {
+	    self.step();
 	}
     }
 }
@@ -129,4 +119,7 @@ fn main() {
 
     let mut comp = IntcodeComputer::new(VecDeque::from(vec![5]), code);
     comp.run();
+    for out in comp.outputs {
+	println!("{}", out);
+    }
 }
