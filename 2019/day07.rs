@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
-// use std::fs;
-// use itertools::Itertools;
+use std::cmp::max;
+use std::fs;
+use itertools::Itertools;
 
 struct IntcodeComputer {
     inputs: VecDeque<i64>,
@@ -106,19 +107,35 @@ impl IntcodeComputer {
     }
 }
 
-fn main() {
-    // let perms = (0..5).permutations(5);
-    // for perm in perms {
-    // 	println!("{:?}", perm);
-    // }
-    // println!("Finished!");
+fn run_phase_sequence(code: Vec<i64>, phase_sequence: Vec<i64>) -> i64 {
+    let mut output = 0;
+    for phase in phase_sequence {
+	let inputs = VecDeque::from(vec![phase, output]);
+	let mut comp = IntcodeComputer::new(inputs, code.clone());
+	comp.run();
+	output = match comp.outputs.pop_front() {
+	    Some(i) => i,
+	    None => panic!("Expected an output!"),
+	};
+    }
+    output
+}
 
-    // let contents = fs::read_to_string("day05.txt")
-    //     .unwrap();
-    // let code: Vec<i64> = contents
-    //     .split(',')
-    //     .map(|s| s.trim().parse::<i64>().unwrap())
-    //     .collect();
+fn main() {
+    let contents = fs::read_to_string("day07.txt")
+        .unwrap();
+    let code: Vec<i64> = contents
+        .split(',')
+        .map(|s| s.trim().parse::<i64>().unwrap())
+        .collect();
+
+    let mut max_output = 0;
+    let perms = (0..5).permutations(5);
+    for perm in perms {
+	let output = run_phase_sequence(code.clone(), perm);
+	max_output = max(output, max_output);
+    }
+    println!("{}", max_output);
 
     // Expected output: 43210
     // let code = vec![3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0];
@@ -130,19 +147,10 @@ fn main() {
     // let phase_sequence = vec![0,1,2,3,4];
 
     // Expected output: 65210
-    let code = vec![3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,
-		    1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0];
-    let phase_sequence = vec![1, 0, 4, 3, 2];
+    // let code = vec![3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,
+    // 		    1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0];
+    // let phase_sequence = vec![1, 0, 4, 3, 2];
 
-    let mut output = 0;
-    for phase in phase_sequence {
-	let inputs = VecDeque::from(vec![phase, output]);
-	let mut comp = IntcodeComputer::new(inputs, code.clone());
-	comp.run();
-	output = match comp.outputs.pop_front() {
-	    Some(i) => i,
-	    None => panic!("Expected an output!"),
-	};
-    }
-    println!("{}", output);
+    // let output = run_phase_sequence(code.clone(), phase_sequence);
+    // println!("{}", output);
 }
