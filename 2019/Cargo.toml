@@ -31,5 +31,9 @@ path = "day06.rs"
 name = "day07"
 path = "day07.rs"
 
+[[bin]]
+name = "day08"
+path = "day08.rs"
+
 [dependencies]
 itertools = "0.12.0"
