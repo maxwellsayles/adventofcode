@@ -14,14 +14,19 @@ fn count_char(input: &str, c: char) -> i64 {
     cnt
 }
 
-fn part1(input: &str) -> i64 {
+fn chunk(input: &str, n: usize) -> Vec<&str> {
     let mut layers = vec![];
     let mut rem = input;
-    while rem.chars().count() >= AREA {
-	let (a, b) = rem.split_at(AREA);
+    while rem.chars().count() >= n {
+	let (a, b) = rem.split_at(n);
 	layers.push(a);
 	rem = b;
     }
+    layers
+}
+
+fn part1(input: &str) -> i64 {
+    let layers = chunk(input, AREA);
 
     // Find layer with least 0s.
     let mut min = std::i64::MAX;
