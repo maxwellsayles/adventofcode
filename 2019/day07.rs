@@ -98,12 +98,12 @@ impl IntcodeComputer {
     }
 
     fn run(&mut self) {
-	while self.outputs.len() == 0 {
-	    self.step();
-	}
-	// while !self.halted {
+	// while self.outputs.len() == 0 {
 	//     self.step();
 	// }
+	while !self.halted {
+	    self.step();
+	}
     }
 }
 
@@ -121,21 +121,14 @@ fn run_phase_sequence(code: Vec<i64>, phase_sequence: Vec<i64>) -> i64 {
     output
 }
 
-fn main() {
-    let contents = fs::read_to_string("day07.txt")
-        .unwrap();
-    let code: Vec<i64> = contents
-        .split(',')
-        .map(|s| s.trim().parse::<i64>().unwrap())
-        .collect();
-
+fn part1(code: Vec<i64>) -> i64 {
     let mut max_output = 0;
     let perms = (0..5).permutations(5);
     for perm in perms {
 	let output = run_phase_sequence(code.clone(), perm);
 	max_output = max(output, max_output);
     }
-    println!("{}", max_output);
+    max_output
 
     // Expected output: 43210
     // let code = vec![3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0];
@@ -151,6 +144,16 @@ fn main() {
     // 		    1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0];
     // let phase_sequence = vec![1, 0, 4, 3, 2];
 
-    // let output = run_phase_sequence(code.clone(), phase_sequence);
-    // println!("{}", output);
+    // run_phase_sequence(code.clone(), phase_sequence);
+}
+
+fn main() {
+    let contents = fs::read_to_string("day07.txt")
+        .unwrap();
+    let code: Vec<i64> = contents
+        .split(',')
+        .map(|s| s.trim().parse::<i64>().unwrap())
+        .collect();
+
+    println!("{}", part1(code.clone()));
 }
