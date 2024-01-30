@@ -44,9 +44,36 @@ fn part1(input: &str) -> i64 {
     res
 }
 
+fn combine_layers(layer1: &String, layer2: &str) -> String {
+    layer1.chars().zip(layer2.chars()).map(
+	|(x, y)| if x == '2' { y } else { x }
+    ).collect()
+}
+
+fn pretty_row(row: &str) -> String {
+    row
+	.chars()
+	.map(|c| if c == '1' { '*' } else { ' ' })
+	.collect()
+}
+
+fn part2(input: &str) {
+    let layers = chunk(input, AREA);
+    let init = String::from(layers[0]);
+    let res = layers[1..]
+	.iter()
+	.fold(init, |x, y| combine_layers(&x, y));
+
+    for row in chunk(&res, WIDTH) {
+	println!("{}", pretty_row(row));
+    }
+}
+
 fn main() {
     let contents = fs::read_to_string("day08.txt")
         .unwrap();
     let trimmed = contents.trim_end();
     println!("{}", part1(&trimmed));
+
+    part2(&trimmed);
 }
