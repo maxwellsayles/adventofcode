@@ -22,6 +22,9 @@ fn chunk(input: &str, n: usize) -> Vec<&str> {
 	layers.push(a);
 	rem = b;
     }
+    if !rem.is_empty() {
+	layers.push(rem);
+    }
     layers
 }
 
@@ -44,5 +47,6 @@ fn part1(input: &str) -> i64 {
 fn main() {
     let contents = fs::read_to_string("day08.txt")
         .unwrap();
-    println!("{}", part1(&contents));
+    let trimmed = contents.trim_end();
+    println!("{}", part1(&trimmed));
 }
