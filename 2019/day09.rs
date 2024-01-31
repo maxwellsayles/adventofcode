@@ -131,6 +131,16 @@ fn part1(code: &Vec<i64>) -> VecDeque<i64> {
     comp.outputs
 }
 
+fn part2(code: &Vec<i64>) -> i64 {
+    let inputs = VecDeque::from(vec![2]);
+    let mut comp = IntcodeComputer::new(inputs, code);
+    comp.run();
+    match comp.outputs.pop_front() {
+	Some(x) => x,
+	_ => panic!("WTF!"),
+    }
+}
+
 fn main() {
     let contents = fs::read_to_string("day09.txt")
         .unwrap();
@@ -146,4 +156,6 @@ fn main() {
     let outputs = part1(&code);
     let pretty: Vec<String> = outputs.iter().map(|x| x.to_string()).collect();
     println!("{}", pretty.join(","));
+
+    println!("{}", part2(&code));
 }
