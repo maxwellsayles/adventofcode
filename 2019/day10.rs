@@ -1,18 +1,10 @@
-use gcd::Gcd;
 use itertools::max;
 use std::collections::HashSet;
 use std::fs;
 
 type Point = (i32, i32);
 
-#[derive(Clone)]
-struct AsteroidField {
-    locs: HashSet<Point>,
-    max_x: i32,
-    max_y: i32,
-}
-
-fn load_asteroids() -> AsteroidField {
+fn load_asteroids() -> HashSet<Point> {
     let contents = fs::read_to_string("day10.txt")
         .unwrap();
     let input: Vec<&str> = contents.lines().collect();
@@ -25,49 +17,59 @@ fn load_asteroids() -> AsteroidField {
 	    }
 	}
     }
-
-    let max_x = max(locs.iter().map(|(x, _)| *x)).unwrap_or(0);
-    let max_y = max(locs.iter().map(|(_, y)| *y)).unwrap_or(0);
-
-    AsteroidField {
-	locs,
-	max_x,
-	max_y,
-    }
+    locs
 }
 
-fn remove_blocked(field: &mut AsteroidField, pos: &Point, loc: &Point) {
-    // Yikes!
-    let dx = loc.0 - pos.0;
-    let dy = loc.1 - pos.1;
-    let g = (dx as u32).gcd(dy as u32) as i32;
-    let d = (dx / g, dy / g);
-
-    let mut p = loc.clone();
-    // Update `p` first so that visible `loc` isn't removed.
-    p.0 += d.0;
-    p.1 += d.1;
-    while p.0 >= 0 && p.0 <= field.max_x && p.1 >= 0 && p.1 <= field.max_y {
-	field.locs.remove(&p);
-	p.0 += d.0;
-	p.1 += d.1;
-    }
+fn dist(x: i32, y: i32) -> f64 {
+    let fx = x as f64;
+    let fy = y as f64;
+    (fx * fx + fy * fy).sqrt()
 }
 
-fn count_visible(input_field: &AsteroidField, pos: &Point) -> usize {
+/**
+ * For all pairs of points (excluding the input point), if the pair
+ * create a congruent triangle, then remove the point further from the input
+ * (since it would not be visible). The remaining count is visible.
+ */
+fn count_visible(input_field: &HashSet<Point>, p: &Point) -> usize {
     let mut field = input_field.clone();
-    field.locs.remove(&pos);
-    for loc in field.locs.clone().iter() {
-	if field.locs.contains(&loc) {
-	    remove_blocked(&mut field, pos, loc);
+    field.remove(&p);
+    for p1 in field.clone().iter() {
+	if !field.contains(p1) {
+	    continue;
+	}
+	for p2 in field.clone().iter() {
+	    if p1 == p2 {
+		continue;
+	    }
+	    if !field.contains(p2) {
+		continue;
+	    }
+	    let d1x = p1.0 - p.0;
+	    let d1y = p1.1 - p.1;
+	    let d2x = p2.0 - p.0;
+	    let d2y = p2.1 - p.1;
+	    // Check congruency.
+	    if d1x * d2y == d2x * d1y {
+		// Check signs.
+		if d1x * d2x >= 0 && d1y * d2y >= 0 {
+		    // Remove the point that is further away from the input.
+		    if dist(d1x, d1y) > dist(d2x, d2y) {
+			field.remove(p1);
+			break;
+		    } else {
+			field.remove(p2);
+		    }
+		}
+	    }
 	}
     }
 
-    field.locs.len()
+    field.len()
 }
 
-fn part1(field: &AsteroidField) -> usize {
-    max(field.locs.iter().map(|loc| count_visible(field, loc))).unwrap_or(0)
+fn part1(field: &HashSet<Point>) -> usize {
+    max(field.iter().map(|p| count_visible(field, p))).unwrap_or(0)
 }
 
 fn main() {
