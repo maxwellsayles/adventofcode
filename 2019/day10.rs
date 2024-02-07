@@ -125,10 +125,10 @@ fn part2(field: &HashSet<Point>, refp: &Point) -> Point {
     let mut ps = VecDeque::from(sorted);
 
     let mut cnt = 0; // Starting at 1 wasn't right, but I don't know why?!?
-    let mut p = ps.pop_front().unwrap_or(&(0, 0));
+    let mut p = ps.pop_front().unwrap();
     let mut last_rad = rad(&p);
     while cnt < 200 {
-	p = ps.pop_front().unwrap_or(&(0, 0));
+	p = ps.pop_front().unwrap();
 	let next_rad = rad(&p);
 	if next_rad == last_rad {
 	    ps.push_back(p);
