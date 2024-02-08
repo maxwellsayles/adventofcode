@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 const MEM_SIZE: usize = 2048;
 
 pub struct IntcodeComputer {
-    inputs: VecDeque<i64>,
+    pub inputs: VecDeque<i64>,
     pub outputs: VecDeque<i64>,
     mem: [i64; MEM_SIZE],
     ip: usize,
@@ -119,7 +119,7 @@ impl IntcodeComputer {
     }
 
     #[allow(dead_code)]
-    fn is_halted(&self) -> bool {
+    pub fn is_halted(&self) -> bool {
 	!self.running && self.mem[self.ip] == 99
     }
 }
