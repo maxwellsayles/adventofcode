@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::fs;
 
-const MEM_SIZE: usize = 100000;
+const MEM_SIZE: usize = 2048;
 
 struct IntcodeComputer {
     inputs: VecDeque<i64>,
