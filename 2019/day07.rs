@@ -13,10 +13,7 @@ fn run_phase_sequence1(code: &Vec<i64>, phase_sequence: &Vec<i64>) -> i64 {
 	let inputs = VecDeque::from(vec![*phase, output]);
 	let mut comp = IntcodeComputer::new(inputs, code);
 	comp.run();
-	output = match comp.outputs.pop_front() {
-	    Some(i) => i,
-	    None => panic!("Expected an output!"),
-	};
+	output = comp.remove_output().unwrap();
     }
     output
 }
@@ -59,7 +56,7 @@ fn run_phase_sequence2(code: &Vec<i64>, phase_sequence: &Vec<i64>) -> i64 {
     }
 
     // Push first signal (0) onto first computer.
-    comps[0].inputs.push_back(0);
+    comps[0].add_input(0);
 
     // Run each computer in sequence until it halts or is blocked on input.
     // Exit when the final computer halts and then return its last output.
@@ -68,11 +65,11 @@ fn run_phase_sequence2(code: &Vec<i64>, phase_sequence: &Vec<i64>) -> i64 {
     while !comps[n - 1].is_halted() {
 	comps[idx].run();
 	let idx2 = (idx + 1) % n;
-	while let Some(output) = comps[idx].outputs.pop_front() {
+	while let Some(output) = comps[idx].remove_output() {
 	    if idx == n - 1 {
 		final_output = output;
 	    }
-	    comps[idx2].inputs.push_back(output);
+	    comps[idx2].add_input(output);
 	}
 	idx = idx2;
     }

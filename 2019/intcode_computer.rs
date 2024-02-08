@@ -3,8 +3,8 @@ use std::collections::VecDeque;
 const MEM_SIZE: usize = 2048;
 
 pub struct IntcodeComputer {
-    pub inputs: VecDeque<i64>,
-    pub outputs: VecDeque<i64>,
+    inputs: VecDeque<i64>,
+    outputs: VecDeque<i64>,
     mem: [i64; MEM_SIZE],
     ip: usize,
     relative_base: i64,
@@ -25,6 +25,15 @@ impl IntcodeComputer {
 	    relative_base: 0,
 	    running: false,
 	}
+    }
+
+    #[allow(dead_code)]
+    pub fn add_input(&mut self, x: i64) {
+	self.inputs.push_back(x);
+    }
+
+    pub fn remove_output(&mut self) -> Option<i64> {
+	self.outputs.pop_front()
     }
 
     fn lookup(&self, arg: usize) -> i64 {

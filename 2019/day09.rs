@@ -5,21 +5,22 @@ use crate::intcode_computer::IntcodeComputer;
 
 mod intcode_computer;
 
-fn part1(code: &Vec<i64>) -> VecDeque<i64> {
+fn part1(code: &Vec<i64>) -> Vec<i64> {
     let inputs = VecDeque::from(vec![1]);
     let mut comp = IntcodeComputer::new(inputs, code);
     comp.run();
-    comp.outputs
+    let mut res = Vec::new();
+    while let Some(x) = comp.remove_output() {
+	res.push(x);
+    }
+    res
 }
 
 fn part2(code: &Vec<i64>) -> i64 {
     let inputs = VecDeque::from(vec![2]);
     let mut comp = IntcodeComputer::new(inputs, code);
     comp.run();
-    match comp.outputs.pop_front() {
-	Some(x) => x,
-	_ => panic!("WTF!"),
-    }
+    comp.remove_output().unwrap()
 }
 
 fn main() {
