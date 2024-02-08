@@ -12,13 +12,13 @@ pub struct IntcodeComputer {
 }
 
 impl IntcodeComputer {
-    pub fn new(inputs: VecDeque<i64>, code: &Vec<i64>) -> Self {
+    pub fn new(inputs: Vec<i64>, code: &Vec<i64>) -> Self {
 	let mut mem: [i64; MEM_SIZE] = [0; MEM_SIZE];
 	for (i, x) in code.iter().enumerate() {
 	    mem[i] = *x;
 	}
 	Self {
-	    inputs: inputs,
+	    inputs: VecDeque::from(inputs),
 	    outputs: VecDeque::new(),
 	    mem: mem,
 	    ip: 0,

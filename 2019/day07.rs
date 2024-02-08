@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use std::cmp::max;
 use std::fs;
 use itertools::Itertools;
@@ -10,7 +9,7 @@ mod intcode_computer;
 fn run_phase_sequence1(code: &Vec<i64>, phase_sequence: &Vec<i64>) -> i64 {
     let mut output = 0;
     for phase in phase_sequence {
-	let inputs = VecDeque::from(vec![*phase, output]);
+	let inputs = vec![*phase, output];
 	let mut comp = IntcodeComputer::new(inputs, code);
 	comp.run();
 	output = comp.remove_output().unwrap();
@@ -50,7 +49,7 @@ fn run_phase_sequence2(code: &Vec<i64>, phase_sequence: &Vec<i64>) -> i64 {
     // Setup initial computers and state.
     let mut comps = Vec::new();
     for phase in phase_sequence {
-	let inputs = VecDeque::from(vec![*phase]);
+	let inputs = vec![*phase];
 	let comp = IntcodeComputer::new(inputs, code);
 	comps.push(comp);
     }

@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use std::fs;
 
 use crate::intcode_computer::IntcodeComputer;
@@ -6,8 +5,7 @@ use crate::intcode_computer::IntcodeComputer;
 mod intcode_computer;
 
 fn part1(code: &Vec<i64>) -> Vec<i64> {
-    let inputs = VecDeque::from(vec![1]);
-    let mut comp = IntcodeComputer::new(inputs, code);
+    let mut comp = IntcodeComputer::new(vec![1], code);
     comp.run();
     let mut res = Vec::new();
     while let Some(x) = comp.remove_output() {
@@ -17,8 +15,7 @@ fn part1(code: &Vec<i64>) -> Vec<i64> {
 }
 
 fn part2(code: &Vec<i64>) -> i64 {
-    let inputs = VecDeque::from(vec![2]);
-    let mut comp = IntcodeComputer::new(inputs, code);
+    let mut comp = IntcodeComputer::new(vec![2], code);
     comp.run();
     comp.remove_output().unwrap()
 }
