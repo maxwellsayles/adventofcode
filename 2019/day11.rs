@@ -46,6 +46,36 @@ impl Robot {
 	self.x += self.dx;
 	self.y += self.dy;
     }
+
+    fn run(&mut self, code: &Vec<i64>) {
+	let mut comp = IntcodeComputer::new(vec![], &code);
+	comp.run();
+	while !comp.is_halted() {
+	    // Provide the current cell as input.
+	    // Then run the program.
+	    // The program will provide two outputs:
+	    // 1) The new cell value.
+	    // 2) 0 to rotate CCW, 1 to rotate CW.
+	    assert!(comp.is_waiting_on_input());
+	    comp.add_input(self.get_cell() as i64);
+	    comp.run();
+	    let val = comp.remove_output().unwrap();
+	    self.set_cell(val as i32);
+	    let rot = comp.remove_output().unwrap();
+	    match rot {
+		0 => self.rotate_ccw(),
+		1 => self.rotate_cw(),
+		_ => panic!("Unexpected rotation value: {}", rot),
+	    }
+	    self.move_forward();
+	}
+    }
+}
+
+fn part1(code: &Vec<i64>) {
+    let mut robot = Robot::new();
+    robot.run(&code);
+    println!("{}", robot.cells.len());
 }
 
 fn main() {
@@ -56,27 +86,5 @@ fn main() {
         .map(|s| s.trim().parse::<i64>().unwrap())
         .collect();
 
-    let mut robot = Robot::new();
-    let mut comp = IntcodeComputer::new(vec![], &code);
-    comp.run();
-    while !comp.is_halted() {
-	// Provide the current cell as input.
-	// Then run the program.
-	// The program will provide two outputs:
-	// 1) The new cell value.
-	// 2) 0 to rotate CCW, 1 to rotate CW.
-	assert!(comp.is_waiting_on_input());
-	comp.add_input(robot.get_cell() as i64);
-	comp.run();
-	let val = comp.remove_output().unwrap();
-	robot.set_cell(val as i32);
-	let rot = comp.remove_output().unwrap();
-	match rot {
-	    0 => robot.rotate_ccw(),
-	    1 => robot.rotate_cw(),
-	    _ => panic!("Unexpected rotation value: {}", rot),
-	}
-	robot.move_forward();
-    }
-    println!("{}", robot.cells.len());
+    part1(&code);
 }
