@@ -1,3 +1,4 @@
+use std::cmp::{min, max};
 use std::collections::HashMap;
 use std::fs;
 
@@ -78,6 +79,34 @@ fn part1(code: &Vec<i64>) {
     println!("{}", robot.cells.len());
 }
 
+
+fn part2(code: &Vec<i64>) {
+    let mut robot = Robot::new();
+    // NOTE: Set the start cell to 1.
+    robot.set_cell(1);
+    robot.run(&code);
+
+    // Get bounding rectangle of "1" cells.
+    let (mut x1, mut y1, mut x2, mut y2) = (0, 0, 0, 0);
+    for ((x, y), v) in robot.cells.iter() {
+	if *v == 1 {
+	    x1 = min(x1, *x);
+	    y1 = min(y1, *y);
+	    x2 = max(x2, *x);
+	    y2 = max(y2, *y);
+	}
+    }
+
+    for y in y1..=y2 {
+	for x in x1..=x2 {
+	    let v = *robot.cells.get(&(x, y)).unwrap_or(&0i32);
+	    let c = if v == 0i32 { ' ' } else { '*' };
+	    print!("{}", c);
+	}
+	println!();
+    }
+}
+
 fn main() {
     let contents = fs::read_to_string("day11.txt")
         .unwrap();
@@ -87,4 +116,5 @@ fn main() {
         .collect();
 
     part1(&code);
+    part2(&code);
 }
