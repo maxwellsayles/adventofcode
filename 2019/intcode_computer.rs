@@ -57,10 +57,13 @@ impl IntcodeComputer {
 	}
     }
 
+    fn get_opcode(&self) -> i64 {
+	self.mem[self.ip] % 100
+    }
+
     fn step(&mut self) {
-	let opcode = self.mem[self.ip];
-	let instr = opcode % 100;
-	match instr {
+	let opcode = self.get_opcode();
+	match opcode {
             1 => {
 		self.store(3, self.lookup(1) + self.lookup(2));
 		self.ip += 4;
@@ -116,7 +119,7 @@ impl IntcodeComputer {
 		self.ip += 2;
 	    },
             99 => self.running = false,
-            _ => panic!("Unknown opcode {}", instr),
+            _ => panic!("Unknown opcode {}", opcode),
 	}
     }
 
@@ -129,7 +132,12 @@ impl IntcodeComputer {
 
     #[allow(dead_code)]
     pub fn is_halted(&self) -> bool {
-	!self.running && self.mem[self.ip] == 99
+	!self.running && self.get_opcode() == 99
+    }
+
+    #[allow(dead_code)]
+    pub fn is_waiting_on_input(&self) -> bool {
+	!self.running && self.get_opcode() == 3
     }
 }
 
