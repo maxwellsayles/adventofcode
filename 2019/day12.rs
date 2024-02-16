@@ -16,7 +16,7 @@ const INIT_MOONS: [V3; 4] = [
     (18, 1, 16),
 ];
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Moon {
     pos: V3,
     vel: V3,
@@ -67,15 +67,19 @@ fn total_energy(moons: &Vec<Moon>) -> i32 {
     moons.iter().map(|m| m.total_energy()).sum()
 }
 
+fn part1(input_moons: &Vec<Moon>) {
+    let mut moons = input_moons.clone();
+    for _ in 0..1000 {
+	moons = step(&moons);
+    }
+    println!("{}", total_energy(&moons));
+}
+
 fn main() {
     let init_moons: Vec<Moon> = INIT_MOONS
 	.iter()
 	.map(|pos| { Moon { pos: *pos, vel: (0, 0, 0) } })
 	.collect();
 
-    let mut moons = init_moons;
-    for _ in 0..1000 {
-	moons = step(&moons);
-    }
-    println!("{}", total_energy(&moons));
+    part1(&init_moons);
 }
