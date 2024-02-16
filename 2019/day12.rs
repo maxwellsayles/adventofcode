@@ -1,3 +1,5 @@
+use num::integer::lcm;
+
 type V3 = (i32, i32, i32);
 
 // Example 1 input.
@@ -75,6 +77,49 @@ fn part1(input_moons: &Vec<Moon>) {
     println!("{}", total_energy(&moons));
 }
 
+fn step_axis(pos: &mut Vec<i32>, vel: &mut Vec<i32>) {
+    assert_eq!(pos.len(), vel.len());
+    let n = pos.len();
+
+    for j in 0..n {
+	for i in 0..j {
+	    let f = force(pos[i], pos[j]);
+	    vel[i] += f;
+	    vel[j] -= f;
+	}
+    }
+
+    for (i, v) in pos.iter_mut().zip(vel.iter()) {
+	*i += v;
+    }
+}
+
+fn solve_axis(pos: &mut Vec<i32>) -> i32 {
+    let init_vel = vec![0i32; pos.len()];
+    let mut vel = vec![0i32; pos.len()];
+
+    step_axis(pos, &mut vel);
+    let mut cnt = 1;
+    while vel != init_vel {
+	step_axis(pos, &mut vel);
+	cnt += 1;
+    }
+    cnt
+}
+
+fn part2(input_moons: &Vec<Moon>) {
+    let mut pos0: Vec<i32> = input_moons.iter().map(|m| m.pos.0).collect();
+    let mut pos1: Vec<i32> = input_moons.iter().map(|m| m.pos.1).collect();
+    let mut pos2: Vec<i32> = input_moons.iter().map(|m| m.pos.2).collect();
+
+    let cnt0 = solve_axis(&mut pos0) as i64;
+    let cnt1 = solve_axis(&mut pos1) as i64;
+    let cnt2 = solve_axis(&mut pos2) as i64;
+
+    let res = lcm(lcm(cnt0, cnt1), cnt2) * 2;
+    println!("{}", res);
+}
+
 fn main() {
     let init_moons: Vec<Moon> = INIT_MOONS
 	.iter()
@@ -82,4 +127,5 @@ fn main() {
 	.collect();
 
     part1(&init_moons);
+    part2(&init_moons);
 }
