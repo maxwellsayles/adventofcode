@@ -4,14 +4,7 @@ use crate::intcode_computer::IntcodeComputer;
 
 mod intcode_computer;
 
-fn main() {
-    let contents = fs::read_to_string("day13.txt")
-        .unwrap();
-    let code: Vec<i64> = contents
-        .split(',')
-        .map(|s| s.trim().parse::<i64>().unwrap())
-        .collect();
-
+fn part1(code: &Vec<i64>) {
     let mut comp = IntcodeComputer::new(Vec::new(), &code);
     comp.run();
     let mut i = 0;
@@ -23,4 +16,15 @@ fn main() {
 	i = (i + 1) % 3;
     }
     println!("{}", cnt);
+}
+
+fn main() {
+    let contents = fs::read_to_string("day13.txt")
+        .unwrap();
+    let code: Vec<i64> = contents
+        .split(',')
+        .map(|s| s.trim().parse::<i64>().unwrap())
+        .collect();
+
+    part1(&code);
 }
