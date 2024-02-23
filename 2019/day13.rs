@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fs;
 use std::io::{stdout, Write};
@@ -113,6 +114,45 @@ fn part2(code: &Vec<i64>) {
     }
 }
 
+/**
+ * Trick I got from:
+ * https://github.com/berkgulmus/AdventOfCode2019/blob/master/Day13.2.py
+ *
+ * Automate the movement of the paddle to track the ball. Run full speed.
+*/
+#[allow(dead_code)]
+fn part2_no_hud(code: &Vec<i64>) {
+    let mut comp = IntcodeComputer::new(Vec::new(), &code);
+    comp.poke_mem(0, 2);
+
+    let mut score = 0;
+    while !comp.is_halted() {
+	comp.run();
+
+	let mut ball = -1;
+	let mut paddle = -1;
+	while let Some(x) = comp.remove_output() {
+	    let y = comp.remove_output().unwrap();
+	    let v = comp.remove_output().unwrap();
+	    if x == -1 && y == 0 {
+		score = v;
+	    } else if v == 3 {
+		paddle = x;
+	    } else if v == 4 {
+		ball = x;
+	    }
+	}
+
+	let input = match paddle.cmp(&ball) {
+	    Ordering::Less => 1,
+	    Ordering::Greater => -1,
+	    Ordering::Equal => 0,
+	};
+	comp.add_input(input);
+    }
+    println!("{}", score);
+}
+
 fn main() {
     let contents = fs::read_to_string("day13.txt")
         .unwrap();
@@ -122,6 +162,7 @@ fn main() {
         .collect();
 
     // NOTE: part2 clears the screen so you cannot see the result of part1.
-//    part1(&code);
-    part2(&code);
+    part1(&code);
+    // part2(&code);
+    part2_no_hud(&code);
 }
