@@ -1,4 +1,3 @@
-use std::cmp::max;
 use std::collections::HashMap;
 use std::fs;
 use std::io::{stdout, Write};
@@ -12,6 +11,9 @@ use termion::raw::IntoRawMode;
 use crate::intcode_computer::IntcodeComputer;
 
 mod intcode_computer;
+
+const MAX_X: i32 = 41;
+const MAX_Y: i32 = 23;
 
 #[allow(dead_code)]
 fn part1(code: &Vec<i64>) {
@@ -40,16 +42,9 @@ fn render(comp: &mut IntcodeComputer) -> HashMap<(i32, i32), i32> {
 }
 
 fn print_display(stdout: &mut dyn Write, display: &HashMap<(i32, i32), i32>) {
-    let mut maxx = 0;
-    let mut maxy = 0;
-    for (x, y) in display.keys() {
-	maxx = max(maxx, *x);
-	maxy = max(maxy, *y);
-    }
-
     write!(stdout, "{}", termion::cursor::Goto(1, 1)).unwrap();
-    for y in 0i32..=maxy {
-	for x in 0i32..=maxx {
+    for y in 0i32..=MAX_Y {
+	for x in 0i32..=MAX_X {
 	    if let Some(v) = display.get(&(x, y)) {
 		let c = match v {
 		    1 => '#',
@@ -61,12 +56,28 @@ fn print_display(stdout: &mut dyn Write, display: &HashMap<(i32, i32), i32>) {
 		write!(
 		    stdout,
 		    "{}{}",
-		    termion::cursor::Goto((x + 1) as u16, (y + 1) as u16),
+		    termion::cursor::Goto((x + 1) as u16, (y + 3) as u16),
 		    c,
 		).unwrap();
 	    }
 	}
     }
+
+    let opt_score = display.get(&(-1, 0));
+    match opt_score {
+	Some(score) => {
+	    write!(
+		stdout,
+		"{}{}Score: {}",
+		termion::cursor::Goto(1, 1),
+		termion::clear::CurrentLine,
+		score,
+	    ).unwrap();
+	},
+	_ => {}
+    }
+
+    write!(stdout, "{}", termion::cursor::Goto(1, 2)).unwrap();
     stdout.flush().unwrap();
 }
 
