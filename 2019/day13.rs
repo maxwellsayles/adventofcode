@@ -1,9 +1,19 @@
+use std::cmp::max;
+use std::collections::HashMap;
 use std::fs;
+use std::io::{stdout, Write};
+use std::thread;
+use std::time::{Duration};
+use termion::async_stdin;
+use termion::event::Key;
+use termion::input::TermRead;
+use termion::raw::IntoRawMode;
 
 use crate::intcode_computer::IntcodeComputer;
 
 mod intcode_computer;
 
+#[allow(dead_code)]
 fn part1(code: &Vec<i64>) {
     let mut comp = IntcodeComputer::new(Vec::new(), &code);
     comp.run();
@@ -18,6 +28,80 @@ fn part1(code: &Vec<i64>) {
     println!("{}", cnt);
 }
 
+fn render(comp: &mut IntcodeComputer) -> HashMap<(i32, i32), i32> {
+    let mut display = HashMap::new();
+    while let Some(x) = comp.remove_output() {
+	let y = comp.remove_output().unwrap();
+	let v = comp.remove_output().unwrap();
+	let p = (x as i32, y as i32);
+	display.insert(p, v as i32);
+    }
+    display
+}
+
+fn print_display(stdout: &mut dyn Write, display: &HashMap<(i32, i32), i32>) {
+    let mut maxx = 0;
+    let mut maxy = 0;
+    for (x, y) in display.keys() {
+	maxx = max(maxx, *x);
+	maxy = max(maxy, *y);
+    }
+
+    write!(stdout, "{}", termion::cursor::Goto(1, 1)).unwrap();
+    for y in 0i32..=maxy {
+	for x in 0i32..=maxx {
+	    if let Some(v) = display.get(&(x, y)) {
+		let c = match v {
+		    1 => '#',
+		    2 => '*',
+		    3 => '-',
+		    4 => 'o',
+		    _ => ' ',
+		};
+		write!(
+		    stdout,
+		    "{}{}",
+		    termion::cursor::Goto((x + 1) as u16, (y + 1) as u16),
+		    c,
+		).unwrap();
+	    }
+	}
+    }
+    stdout.flush().unwrap();
+}
+
+#[allow(dead_code)]
+fn part2(code: &Vec<i64>) {
+    let mut stdin = async_stdin().keys();
+    let mut stdout = stdout().lock().into_raw_mode().unwrap();
+
+    write!(stdout,
+           "{}{}",
+           termion::clear::All,
+           termion::cursor::Goto(1, 1))
+            .unwrap();
+    stdout.flush().unwrap();
+
+    let mut comp = IntcodeComputer::new(Vec::new(), &code);
+    comp.poke_mem(0, 2);
+
+    while !comp.is_halted() {
+	comp.run();
+
+	let display = render(&mut comp);
+	print_display(&mut stdout, &display);
+
+	match stdin.next() {
+	    Some(Ok(Key::Esc)) => break,
+	    Some(Ok(Key::Left)) => comp.add_input(-1i64),
+	    Some(Ok(Key::Right)) => comp.add_input(1i64),
+	    _ => comp.add_input(0i64),
+	}
+
+	thread::sleep(Duration::from_millis(250));
+    }
+}
+
 fn main() {
     let contents = fs::read_to_string("day13.txt")
         .unwrap();
@@ -26,5 +110,7 @@ fn main() {
         .map(|s| s.trim().parse::<i64>().unwrap())
         .collect();
 
-    part1(&code);
+    // NOTE: part2 clears the screen so you cannot see the result of part1.
+//    part1(&code);
+    part2(&code);
 }

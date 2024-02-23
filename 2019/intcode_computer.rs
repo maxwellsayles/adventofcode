@@ -36,6 +36,11 @@ impl IntcodeComputer {
 	self.outputs.pop_front()
     }
 
+    #[allow(dead_code)]
+    pub fn poke_mem(&mut self, pos: usize, val: i64) {
+	self.mem[pos] = val;
+    }
+
     fn lookup(&self, arg: usize) -> i64 {
 	let mode = (self.mem[self.ip] / (10 * 10_i64.pow(arg as u32))) % 10;
 	let val = self.mem[self.ip + arg];
