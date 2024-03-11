@@ -41,6 +41,31 @@ fn parse_rule(txt: &str) -> Rule {
     }
 }
 
+fn scale_reaction(
+    r: &Reaction,
+    x: i32,
+) -> Reaction {
+    let consume = r.0.iter().map(|(k, v)| (k.clone(), v * x)).collect();
+    let produce = r.1.iter().map(|(k, v)| (k.clone(), v * x)).collect();
+    (consume, produce)
+}
+
+/**
+ * Return a reaction that produces at least the requested amount of an element
+ * (may produce more than the requested amount).
+ */
+fn produce_reaction(
+    rules: &Rules,
+    to_produce: &String,
+    qty: i32,
+) -> Reaction {
+    let rule = &rules[to_produce];
+    let mult = ((qty as f32) / (rule.qty as f32)).ceil() as i32;
+    let consume = rule.consume.clone();
+    let produce = HashMap::from([(to_produce.clone(), rule.qty)]);
+    scale_reaction(&(consume, produce), mult)
+}
+
 fn main() {
     let contents = fs::read_to_string("day14.txt").unwrap();
     let xs = contents
@@ -51,7 +76,9 @@ fn main() {
 	.map(|rule| (rule.produce.clone(), rule))
 	.collect();
 
-    for (k, v) in rules {
-	println!("{} {:?}", k, v);
-    }
+    // for (k, v) in rules {
+    // 	println!("{} {:?}", k, v);
+    // }
+    let reaction = produce_reaction(&rules, &String::from("CJTB"), 7);
+    println!("{:?}", reaction);
 }
