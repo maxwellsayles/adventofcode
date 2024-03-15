@@ -1,10 +1,11 @@
 /**
- * Tentative idea is to keep a LHS (what's needed) and RHS (what's produced).
+ * Idea for part 1 is to keep a LHS (what's needed) and RHS (what's produced).
  * In a loop: for any item on the LHS, replace it with the items needed to
- * produce enough of it. Then subtract any matching items from the RHS (already
- * produced) to get the deficit. Continue until the LHS is only ORE.
+ * produce enough of it. Then subtract any matching items from both sides to get
+ * the deficit. Continue until the LHS is only ORE.
  */
 
+use std::cmp::max;
 use std::collections::HashMap;
 use std::fs;
 
@@ -66,6 +67,73 @@ fn produce_reaction(
     scale_reaction(&(consume, produce), mult)
 }
 
+fn combine_reactions(
+    x: &Reaction,
+    y: &Reaction,
+) -> Reaction {
+    fn combine(
+	x: &HashMap<String, i32>,
+	y: &HashMap<String, i32>,
+    ) -> HashMap<String, i32> {
+	let mut z = x.clone();
+	for (k, v) in y.iter() {
+	    let vv = z.get(k).unwrap_or(&0) + v;
+	    z.insert(k.clone(), vv);
+	}
+	z
+    }
+    (combine(&x.0, &y.0), combine(&x.1, &y.1))
+}
+
+fn normalize_reaction(r: &Reaction) -> Reaction {
+    let mut cs = HashMap::new();
+    for (ck, cv) in r.0.iter() {
+	let vv = max(0, cv - r.1.get(ck).unwrap_or(&0));
+	if vv > 0 {
+	    cs.insert(ck.clone(), vv);
+	}
+    }
+
+    let mut ps = HashMap::new();
+    for (pk, pv) in r.1.iter() {
+	let vv = max(0, pv - r.0.get(pk).unwrap_or(&0));
+	if vv > 0 {
+	    ps.insert(pk.clone(), vv);
+	}
+    }
+
+    (cs, ps)
+}
+
+fn is_consume_just_ore(r: &Reaction) -> bool {
+    r.0.len() == 1 && r.0.contains_key(&String::from("ORE"))
+}
+
+fn get_random_non_ore_from_consume<'a>(r: &'a Reaction) -> (&'a String, i32) {
+    for (k, v) in r.0.iter() {
+	if k != "ORE" {
+	    return (k, *v);
+	}
+    }
+
+    panic!("No pair found in {:?}", r);
+}
+
+fn step_reaction(rules: &Rules, r: &Reaction) -> Reaction {
+    let (k, v) = get_random_non_ore_from_consume(&r);
+    let r1 = produce_reaction(&rules, k, v);
+    let r2 = combine_reactions(r, &r1);
+    normalize_reaction(&r2)
+}
+
+fn part1(rules: &Rules) {
+    let mut r = produce_reaction(rules, &String::from("FUEL"), 1);
+    while !is_consume_just_ore(&r) {
+	r = step_reaction(rules, &r);
+    }    
+    println!("{}", r.0["ORE"]);
+}
+
 fn main() {
     let contents = fs::read_to_string("day14.txt").unwrap();
     let xs = contents
@@ -76,9 +144,5 @@ fn main() {
 	.map(|rule| (rule.produce.clone(), rule))
 	.collect();
 
-    // for (k, v) in rules {
-    // 	println!("{} {:?}", k, v);
-    // }
-    let reaction = produce_reaction(&rules, &String::from("CJTB"), 7);
-    println!("{:?}", reaction);
+    part1(&rules);
 }
