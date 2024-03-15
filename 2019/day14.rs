@@ -9,6 +9,8 @@ use std::cmp::max;
 use std::collections::HashMap;
 use std::fs;
 
+const ONE_TRILLION: i64 = 1000000000000;
+
 type Consume = HashMap<String, i64>;
 type Produce = HashMap<String, i64>;
 
@@ -134,6 +136,22 @@ fn part1(rules: &Rules) {
     println!("{}", r.0["ORE"]);
 }
 
+/**
+ * Found by manually binary searching for the largest amount of FUEL that
+ * produced the largest amount of ORE <= 10^12. This could be computed with an
+ * actual binary search, but doing it manually was pretty fast.
+ */
+fn part2(rules: &Rules) {
+    const FUEL: i64 = 998536;
+
+    let mut r = produce_reaction(rules, &String::from("FUEL"), FUEL);
+    while !is_consume_just_ore(&r) {
+	r = step_reaction(rules, &r);
+    }
+    let ore = r.0["ORE"];
+    println!("{} {} {}", ore, ore <= ONE_TRILLION, FUEL);
+}
+
 fn main() {
     let contents = fs::read_to_string("day14.txt").unwrap();
     let xs = contents
@@ -145,4 +163,5 @@ fn main() {
 	.collect();
 
     part1(&rules);
+    part2(&rules);
 }
