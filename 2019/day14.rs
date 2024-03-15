@@ -142,14 +142,28 @@ fn part1(rules: &Rules) {
  * actual binary search, but doing it manually was pretty fast.
  */
 fn part2(rules: &Rules) {
-    const FUEL: i64 = 998536;
+    let eval = |fuel: i64| -> bool {
+	let mut r = produce_reaction(rules, &String::from("FUEL"), fuel);
+	while !is_consume_just_ore(&r) {
+	    r = step_reaction(rules, &r);
+	}
+	r.0["ORE"] <= ONE_TRILLION
+    };
 
-    let mut r = produce_reaction(rules, &String::from("FUEL"), FUEL);
-    while !is_consume_just_ore(&r) {
-	r = step_reaction(rules, &r);
+    let mut a: i64 = 1;
+    let mut n: i64 = i32::MAX as i64;
+    while n > 1 {
+	let m = n / 2;
+	let b = a + m;
+	let x = eval(b);
+	if x {
+	    n -= m;
+	    a = b;
+	} else {
+	    n = m;
+	}
     }
-    let ore = r.0["ORE"];
-    println!("{} {} {}", ore, ore <= ONE_TRILLION, FUEL);
+    println!("{}", a);
 }
 
 fn main() {
