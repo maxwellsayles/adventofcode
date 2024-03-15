@@ -9,14 +9,14 @@ use std::cmp::max;
 use std::collections::HashMap;
 use std::fs;
 
-type Consume = HashMap<String, i32>;
-type Produce = HashMap<String, i32>;
+type Consume = HashMap<String, i64>;
+type Produce = HashMap<String, i64>;
 
 type Reaction = (Consume, Produce);
 
 #[derive(Debug)]
 struct Rule {
-    qty: i32,
+    qty: i64,
     produce: String,
     consume: Consume,
 }
@@ -30,13 +30,13 @@ fn parse_rule(txt: &str) -> Rule {
 	.split(", ")
 	.map(|item| {
 	    let xs: Vec<_> = item.split(' ').collect();
-	    (String::from(xs[1]), xs[0].parse::<i32>().unwrap())
+	    (String::from(xs[1]), xs[0].parse::<i64>().unwrap())
 	})
 	.collect();
     let produce_tmp: Vec<_> = rhs.split(' ').collect();
 
     Rule {
-	qty: produce_tmp[0].parse::<i32>().unwrap(),
+	qty: produce_tmp[0].parse::<i64>().unwrap(),
 	produce: String::from(produce_tmp[1]),
 	consume,
     }
@@ -44,7 +44,7 @@ fn parse_rule(txt: &str) -> Rule {
 
 fn scale_reaction(
     r: &Reaction,
-    x: i32,
+    x: i64,
 ) -> Reaction {
     let consume = r.0.iter().map(|(k, v)| (k.clone(), v * x)).collect();
     let produce = r.1.iter().map(|(k, v)| (k.clone(), v * x)).collect();
@@ -58,10 +58,10 @@ fn scale_reaction(
 fn produce_reaction(
     rules: &Rules,
     to_produce: &String,
-    qty: i32,
+    qty: i64,
 ) -> Reaction {
     let rule = &rules[to_produce];
-    let mult = ((qty as f32) / (rule.qty as f32)).ceil() as i32;
+    let mult = ((qty as f32) / (rule.qty as f32)).ceil() as i64;
     let consume = rule.consume.clone();
     let produce = HashMap::from([(to_produce.clone(), rule.qty)]);
     scale_reaction(&(consume, produce), mult)
@@ -72,9 +72,9 @@ fn combine_reactions(
     y: &Reaction,
 ) -> Reaction {
     fn combine(
-	x: &HashMap<String, i32>,
-	y: &HashMap<String, i32>,
-    ) -> HashMap<String, i32> {
+	x: &HashMap<String, i64>,
+	y: &HashMap<String, i64>,
+    ) -> HashMap<String, i64> {
 	let mut z = x.clone();
 	for (k, v) in y.iter() {
 	    let vv = z.get(k).unwrap_or(&0) + v;
@@ -109,7 +109,7 @@ fn is_consume_just_ore(r: &Reaction) -> bool {
     r.0.len() == 1 && r.0.contains_key(&String::from("ORE"))
 }
 
-fn get_random_non_ore_from_consume<'a>(r: &'a Reaction) -> (&'a String, i32) {
+fn get_random_non_ore_from_consume<'a>(r: &'a Reaction) -> (&'a String, i64) {
     for (k, v) in r.0.iter() {
 	if k != "ORE" {
 	    return (k, *v);
@@ -130,7 +130,7 @@ fn part1(rules: &Rules) {
     let mut r = produce_reaction(rules, &String::from("FUEL"), 1);
     while !is_consume_just_ore(&r) {
 	r = step_reaction(rules, &r);
-    }    
+    }
     println!("{}", r.0["ORE"]);
 }
 
