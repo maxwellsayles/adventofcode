@@ -137,9 +137,8 @@ fn part1(rules: &Rules) {
 }
 
 /**
- * Found by manually binary searching for the largest amount of FUEL that
- * produced the largest amount of ORE <= 10^12. This could be computed with an
- * actual binary search, but doing it manually was pretty fast.
+ * Found by binary searching for the largest amount of FUEL that produced the
+ * largest amount of ORE <= 10^12.
  */
 fn part2(rules: &Rules) {
     let eval = |fuel: i64| -> bool {
@@ -155,8 +154,7 @@ fn part2(rules: &Rules) {
     while n > 1 {
 	let m = n / 2;
 	let b = a + m;
-	let x = eval(b);
-	if x {
+	if eval(b) {
 	    n -= m;
 	    a = b;
 	} else {
