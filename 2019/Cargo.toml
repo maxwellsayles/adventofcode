@@ -59,6 +59,10 @@ path = "day13.rs"
 name = "day14"
 path = "day14.rs"
 
+[[bin]]
+name = "day15"
+path = "day15.rs"
+
 [dependencies]
 gcd = "2.3.0"
 itertools = "0.12.0"
