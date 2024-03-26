@@ -53,7 +53,7 @@ fn status_from_i64(x: i64) -> Status {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum Cell {
     Open,
     Oxygen,
@@ -164,6 +164,45 @@ fn part1(cells: &HashMap<Pos, Cell>) {
     }
 }
 
+fn part2(input_cells: &HashMap<Pos, Cell>) {
+    let mut cells_queue = Vec::from([input_cells.clone()]);
+    let mut open_cnt =
+	input_cells.values().filter(|c| *c == &Cell::Open).count();
+    let mut round = 0;
+
+    while open_cnt > 0 {
+	open_cnt = 0;
+	let cells = cells_queue.pop().unwrap();
+	let mut cells2 = HashMap::new();
+
+	let is_adjacent_to_oxygen = |p| {
+            [Dir::North, Dir::East, Dir::South, Dir::West].iter().any(|d| {
+		let c = cells.get(&move_pos(p, *d)).unwrap_or(&Cell::Open);
+		c == &Cell::Oxygen
+	    })
+	};
+
+	for (p, v) in cells.iter() {
+	    let new_v = match v {
+		Cell::Open => {
+		    if is_adjacent_to_oxygen(&p) {
+			Cell::Oxygen
+		    } else {
+			open_cnt += 1;
+			Cell::Open
+		    }
+		},
+		Cell::Oxygen => Cell::Oxygen,
+		Cell::Wall => Cell::Wall,
+	    };
+	    cells2.insert(p.clone(), new_v);
+	}
+	round += 1;
+	cells_queue.push(cells2);
+    }
+    println!("{}", round);
+}
+
 fn main() {
     let contents = fs::read_to_string("day15.txt").unwrap();
     let code: Vec<i64> = contents
@@ -175,4 +214,5 @@ fn main() {
     state.generate_cells();
 
     part1(&state.cells);
+    part2(&state.cells);
 }
