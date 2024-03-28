@@ -52,7 +52,11 @@ fn part1(xs: &Vec<i32>) {
     for _ in 0..100 {
 	ys = fft(&ys);
     }
-    let res = ys.iter().take(8).map(|x| x.to_string()).collect::<Vec<_>>().join("");
+    let res = ys.iter()
+	.take(8)
+	.map(|x| x.to_string())
+	.collect::<Vec<_>>()
+	.join("");
     println!("{}", res);
 }
 
