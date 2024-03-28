@@ -60,6 +60,42 @@ fn part1(xs: &Vec<i32>) {
     println!("{}", res);
 }
 
+/**
+ * Went to Reddit to see how others solved this. Heavily influenced by the
+ * solution here: https://github.com/prscoelho/aoc2019/blob/master/src/aoc16/mod.rs
+ */
+fn part2(xs: &Vec<i32>) {
+    let msg_offset =
+	xs[0..7].iter().fold(0, |acc, x| acc * 10 + x) as usize;
+
+    // Repeat the input sequence 10000 times, ignoring anything before the
+    // message offset.
+    let mut cur = xs
+	.iter()
+	.cycle()
+	.take(xs.len() * 10000)
+	.skip(msg_offset)
+	.map(|x| *x) // Convert &i32 to i32
+	.collect::<Vec<i32>>();
+
+    for _ in 0..100 {
+        let mut sums = Vec::with_capacity(cur.len());
+        let mut total = 0;
+	for x in cur.iter() {
+	    sums.push(total);
+	    total += x;
+	}
+
+	let last = sums.last().unwrap();
+        for i in 0..cur.len() {
+            cur[i] = (last - sums[i]) % 10;
+        }
+    }
+
+    let res = cur[0..8].iter().fold(0, |acc, x| acc * 10 + x);
+    println!("{}", res);
+}
+
 fn main() {
     let contents: Vec<i32> = fs::read_to_string("day16.txt")
 	.unwrap()
@@ -69,4 +105,5 @@ fn main() {
 	.collect();
 
     part1(&contents);
+    part2(&contents);
 }
