@@ -39,6 +39,7 @@ fn main() {
     let mut y: i32 = 0;
     while let Some(c) = comp.remove_output() {
 	let ch = char::from_u32(c as u32).unwrap();
+	print!("{}", ch);
 	if ch != '\n' {
 	    cells.insert((x, y), ch);
 	    x += 1;
