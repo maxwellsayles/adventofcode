@@ -32,6 +32,11 @@ impl IntcodeComputer {
 	self.inputs.push_back(x);
     }
 
+    #[allow(dead_code)]
+    pub fn output_len(&self) -> usize {
+	self.outputs.len()
+    }
+
     pub fn remove_output(&mut self) -> Option<i64> {
 	self.outputs.pop_front()
     }
