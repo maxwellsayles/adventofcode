@@ -1,4 +1,3 @@
-use std::boxed::Box;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs;
 use std::vec::Vec;
@@ -165,15 +164,13 @@ fn part1(cells: &HashMap<Pos, Cell>) {
     }
 }
 
-fn part2(input_cells: &HashMap<Pos, Cell>) {
-    let mut cells_box = Box::new(input_cells.clone());
+fn part2(mut cells: HashMap<Pos, Cell>) {
     let mut open_cnt =
-	input_cells.values().filter(|c| *c == &Cell::Open).count();
+	cells.values().filter(|c| *c == &Cell::Open).count();
     let mut round = 0;
 
     while open_cnt > 0 {
 	open_cnt = 0;
-	let cells = *cells_box;
 	let mut cells2 = HashMap::new();
 
 	let is_adjacent_to_oxygen = |p| {
@@ -199,7 +196,7 @@ fn part2(input_cells: &HashMap<Pos, Cell>) {
 	    cells2.insert(p.clone(), new_v);
 	}
 	round += 1;
-	cells_box = Box::new(cells2);
+	cells = cells2;
     }
     println!("{}", round);
 }
@@ -215,5 +212,5 @@ fn main() {
     state.generate_cells();
 
     part1(&state.cells);
-    part2(&state.cells);
+    part2(state.cells.clone());
 }
