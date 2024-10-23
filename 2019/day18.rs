@@ -67,15 +67,13 @@ fn read_cells(filename: &str) -> HashMap<Point, char> {
 
 fn part1(cells: &HashMap<Point, char>) {
     let keys = all_keys(cells);
-    let mut q1 = VecDeque::new();
-    let mut q2 = VecDeque::from([State::new(cells)]);
+    let mut qbox = Box::new(VecDeque::from([State::new(cells)]));
     let mut v = HashSet::new();
     let mut d = 0;
-    while !q2.is_empty() {
-	while let Some(s) = q2.pop_front() {
-	    q1.push_back(s);
-	}
-	while let Some(mut s) = q1.pop_front() {
+    loop {
+	let mut q = *qbox;
+	let mut q2 = VecDeque::new();
+	while let Some(mut s) = q.pop_front() {
 	    let c = cells[&s.pos];
 	    if c == '#' {
 		continue;
@@ -98,6 +96,7 @@ fn part1(cells: &HashMap<Point, char>) {
 	    q2.push_back(s.step(1, 0));
 	    v.insert(s);
 	}
+	*qbox = q2;
 	d += 1;
     }
 }
