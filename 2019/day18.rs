@@ -2,6 +2,14 @@ use std::char;
 use std::collections::{ HashMap, HashSet, VecDeque };
 use std::fs;
 
+fn key_to_mask(c: char) -> u32 {
+    1 << (c as u32 - 'a' as u32)
+}
+
+fn lock_to_mask(c: char) -> u32 {
+    1 << (c as u32 - 'A' as u32)
+}
+
 type Point = (i32, i32);
 
 #[derive(Eq, Hash, PartialEq)]
@@ -23,16 +31,14 @@ impl State {
     }
 
     fn add_key(&self, c: char) -> Self {
-	let mask = 1 << (c as u32 - 'a' as u32);
 	Self {
 	    pos: self.pos,
-	    keys: self.keys | mask,
+	    keys: self.keys | key_to_mask(c),
 	}
     }
 
     fn has_key(&self, c: char) -> bool {
-	let mask = 1 << (c as u32 - 'A' as u32);
-	self.keys & mask != 0
+	self.keys & lock_to_mask(c) != 0
     }
 
     fn step(&self, dx: i32, dy: i32) -> Self {
@@ -47,7 +53,7 @@ fn all_keys(cells: &HashMap<Point, char>) -> u32 {
     let mut mask = 0;
     for &c in cells.values() {
 	if c >= 'a' && c <= 'z' {
-	    mask = mask | (1 << (c as u32 - 'a' as u32));
+	    mask = mask | key_to_mask(c);
 	}
     }
     mask
