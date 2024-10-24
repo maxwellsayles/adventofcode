@@ -19,7 +19,7 @@ struct State {
 }
 
 impl State {
-    fn new(cells: &HashMap<Point, char>) -> Self {
+    fn with_cells(cells: &HashMap<Point, char>) -> Self {
 	let start = cells
 	    .iter()
 	    .filter(|(_, &v)| v == '@')
@@ -73,7 +73,7 @@ fn read_cells(filename: &str) -> HashMap<Point, char> {
 
 fn part1(cells: &HashMap<Point, char>) {
     let keys = all_keys(cells);
-    let mut qbox = Box::new(VecDeque::from([State::new(cells)]));
+    let mut qbox = Box::new(VecDeque::from([State::with_cells(cells)]));
     let mut v = HashSet::new();
     let mut d = 0;
     loop {
