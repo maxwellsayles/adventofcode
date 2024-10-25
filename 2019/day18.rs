@@ -1,5 +1,6 @@
 use std::char;
-use std::collections::{ HashMap, HashSet, VecDeque };
+use std::cmp::Ordering;
+use std::collections::{ BinaryHeap, HashMap, HashSet, VecDeque };
 use std::fs;
 use std::hash::{Hash, Hasher};
 
@@ -210,6 +211,18 @@ impl PartialEq for StateP2 {
     }
 }
 
+impl Ord for StateP2 {
+    fn cmp(&self, other: &Self) -> Ordering {
+	other.d.cmp(&self.d)
+    }
+}
+
+impl PartialOrd for StateP2 {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+	Some(self.cmp(other))
+    }
+}
+
 impl StateP2 {
     fn advance_to_reachable(&self, i: usize, r: &Reachable) -> Option<Self> {
 	// Don't have all the keys needed for all the locks encountered on the path.
@@ -264,12 +277,12 @@ fn part2(input_cells: &HashMap<Point, char>) {
 	d: 0,
 	ks: 0,
     };
-    let mut q = VecDeque::from([init_state]); // TODO: Priority queue by distance
+    let mut q = BinaryHeap::from([init_state]);
     let mut v = HashSet::new();
-    let mut ds = Vec::new();
-    while let Some(s) = q.pop_front() {
+    while let Some(s) = q.pop() {
 	if s.ks == all_keys {
-	    ds.push(s.d);
+	    println!("{}", s.d);
+	    return;
 	}
 	if v.contains(&s) {
 	    continue;
@@ -280,14 +293,13 @@ fn part2(input_cells: &HashMap<Point, char>) {
 	    let reachable = &reachable_from[p];
 	    for r in reachable {
 		if let Some(next_s) = s.advance_to_reachable(i, r) {
-		    q.push_back(next_s);
+		    q.push(next_s);
 		}
 	    }
 	}
 
 	v.insert(s);
     }
-    println!("{}", ds.iter().min().unwrap());
 }
 
 fn main() {
