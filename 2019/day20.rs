@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::fs;
 
-type Point = (i32, i32);
 type Cells = HashMap<Point, char>;
+type Label = [char; 2];
+type Point = (i32, i32);
 
 fn read_cells(filename: &str) -> Cells {
     let content = fs::read_to_string(filename)
@@ -16,7 +17,7 @@ fn read_cells(filename: &str) -> Cells {
     cells
 }
 
-fn find_portal(cells: &Cells, p: &Point) -> Option<([char; 2], Point)> {
+fn maybe_portal(cells: &Cells, p: &Point) -> Option<(Label, Point)> {
     let &c1 = cells.get(&p).unwrap_or(&'#');
     if !c1.is_ascii_uppercase() {
 	return None;
@@ -43,21 +44,27 @@ fn find_portal(cells: &Cells, p: &Point) -> Option<([char; 2], Point)> {
 }
 
 fn find_portals(cells: &Cells) -> HashMap<Point, Point> {
+    let mut portals = HashMap::new();
+    let mut ps: HashMap<Label, Point> = HashMap::new();
     for p in cells.keys() {
-	if let Some((pair, point)) = find_portal(&cells, &p) {
-	    println!("{}{} {},{}", pair[0], pair[1], point.0, point.1);
+	if let Some((label, p1)) = maybe_portal(&cells, &p) {
+	    if let Some(p2) = ps.get(&label) {
+		// Got a portal pair.
+		portals.insert(p1.clone(), p2.clone());
+		portals.insert(p2.clone(), p1.clone());
+	    } else {
+		// Found first pair of a portal.
+		ps.insert(label, p1);
+	    }
 	}
     }
-    HashMap::new()
+    portals
 }
 
 fn main() {
     let cells = read_cells("day20.txt");
-    find_portals(&cells);
-    // for y in 0..=122 {
-    // 	for x in 0..=126 {
-    // 	    print!("{}", cells[&(x, y)]);
-    // 	}
-    // 	println!();
-    // }
+    let portals = find_portals(&cells);
+    for (p1, p2) in portals.iter() {
+	println!("{},{} -> {},{}", p1.0, p1.1, p2.0, p2.1);
+    }
 }
