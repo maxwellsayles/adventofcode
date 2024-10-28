@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{ HashMap, HashSet, VecDeque };
 use std::fs;
 
 type Cells = HashMap<Point, char>;
@@ -61,10 +61,57 @@ fn find_portals(cells: &Cells) -> HashMap<Point, Point> {
     portals
 }
 
+fn find_portal_by_label(cells: &Cells, label: &Label) -> Option<Point> {
+    for p in cells.keys() {
+	if let Some((l, p)) = maybe_portal(&cells, &p) {
+	    if l == *label {
+		return Some(p);
+	    }
+	}
+    }
+    None
+}
+
+fn part1(cells: &Cells) {
+    let portals = find_portals(&cells);
+    let start = find_portal_by_label(&cells, &['A', 'A']).unwrap();
+    let end = find_portal_by_label(&cells, &['Z', 'Z']).unwrap();
+
+    let mut qbox = Box::new(VecDeque::from([start]));
+    let mut v = HashSet::new();
+    let mut d = 0;
+    loop {
+	let mut q = *qbox;
+	let mut q2 = VecDeque::new();
+	while let Some(p) = q.pop_front() {
+	    if p == end {
+		println!("{}", d);
+		return;
+	    }
+	    if cells.get(&p).unwrap_or(&'#') != &'.' {
+		continue;
+	    }
+	    if v.contains(&p) {
+		continue;
+	    }
+	    q2.push_back((p.0 - 1, p.1));
+	    q2.push_back((p.0 + 1, p.1));
+	    q2.push_back((p.0, p.1 - 1));
+	    q2.push_back((p.0, p.1 + 1));
+	    if let Some(p2) = portals.get(&p) {
+		q2.push_back(p2.clone());
+	    }
+	    v.insert(p);
+
+	}
+	*qbox = q2;
+	d += 1;
+    }
+
+}
+
 fn main() {
     let cells = read_cells("day20.txt");
-    let portals = find_portals(&cells);
-    for (p1, p2) in portals.iter() {
-	println!("{},{} -> {},{}", p1.0, p1.1, p2.0, p2.1);
-    }
+    part1(&cells);
+
 }
