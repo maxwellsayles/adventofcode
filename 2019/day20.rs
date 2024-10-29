@@ -107,11 +107,67 @@ fn part1(cells: &Cells) {
 	*qbox = q2;
 	d += 1;
     }
+}
 
+// NOTE: These values are hardcoded from my puzzle input. YMMV.
+fn is_outside_portal(p: &Point) -> bool {
+    p.0 == 2 || p.1 == 2 || p.0 == 124 || p.1 == 120
+}
+
+// NOTE: These values are hardcoded from my puzzle input. YMMV.
+fn is_inside_portal(p: &Point) -> bool {
+    p.0 == 34 || p.0 == 92 || p.1 == 34 || p.1 == 88
+}
+
+fn part2(cells: &Cells) {
+    let portals = find_portals(&cells);
+    let start = find_portal_by_label(&cells, &['A', 'A']).unwrap();
+    let end = find_portal_by_label(&cells, &['Z', 'Z']).unwrap();
+
+    let mut qbox = Box::new(VecDeque::from([(start.0, start.1, 0)]));
+    let mut v = HashSet::new();
+    let mut d = 0;
+    loop {
+	let mut q = *qbox;
+	let mut q2 = VecDeque::new();
+	while let Some(p) = q.pop_front() {
+	    if p.0 == end.0 && p.1 == end.1 && p.2 == 0 {
+		println!("{}", d);
+		return;
+	    }
+	    if p.2 < 0 {
+		continue;
+	    }
+	    let p1 = (p.0, p.1);
+	    if cells.get(&p1).unwrap_or(&'#') != &'.' {
+		continue;
+	    }
+	    if v.contains(&p) {
+		continue;
+	    }
+	    q2.push_back((p.0 - 1, p.1, p.2));
+	    q2.push_back((p.0 + 1, p.1, p.2));
+	    q2.push_back((p.0, p.1 - 1, p.2));
+	    q2.push_back((p.0, p.1 + 1, p.2));
+	    if let Some(p2) = portals.get(&p1) {
+		if is_outside_portal(&p1) {
+		    q2.push_back((p2.0, p2.1, p.2 - 1));
+		} else if is_inside_portal(&p1) {
+		    q2.push_back((p2.0, p2.1, p.2 + 1));
+		} else {
+		    panic!("Portal is neither on the inside nor the outside: {},{}", p.0, p.1);
+		}
+	    }
+	    v.insert(p);
+
+	}
+	*qbox = q2;
+	d += 1;
+    }
 }
 
 fn main() {
     let cells = read_cells("day20.txt");
     part1(&cells);
-
+    part2(&cells);
 }
