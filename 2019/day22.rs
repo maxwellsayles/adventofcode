@@ -1,7 +1,13 @@
 use regex::Regex;
 use std::fs;
 
-fn process_input(filename: &str, p: i32) -> (i32, i32) {
+enum Op {
+    Rev,
+    Cut { n: i32 },
+    Inc { n: i32 },
+}
+
+fn parse_input(filename: &str) -> Vec<Op> {
     let content = fs::read_to_string(filename)
 	.unwrap();
     let re_deal_into_new_stack =
@@ -10,35 +16,46 @@ fn process_input(filename: &str, p: i32) -> (i32, i32) {
 	Regex::new(r"^cut (-?\d+)$").unwrap();
     let re_deal_with_increment =
 	Regex::new(r"^deal with increment (\d+)$").unwrap();
-    let mut i = 0;
-    let mut j = 1;
+    let mut res = Vec::new();
     for l in content.lines() {
 	if let Some(_) = re_deal_into_new_stack.captures(l) {
-	    i = p - 1 - i;
-	    j = p - 1 - j;
+	    res.push(Op::Rev);
 	} else if let Some(captures) = re_cut.captures(l) {
 	    let n = captures.get(1).unwrap().as_str().parse::<i32>().unwrap();
-	    i = (i - n) % p;
-	    if i < 0 {
-		i += p;
-	    }
-	    j = (j - n) % p;
-	    if j < 0 {
-		j += p;
-	    }
+	    res.push(Op::Cut { n });
 	} else if let Some(captures) = re_deal_with_increment.captures(l) {
 	    let n = captures.get(1).unwrap().as_str().parse::<i32>().unwrap();
-	    i = (i * n) % p;
-	    j = (j * n) % p;
+	    res.push(Op::Inc { n });
 	} else {
 	    panic!("Unrecognized instructions: {}", l);
 	}
     }
-    (i, (j - i) % p)
+    res
+}
+
+fn part1(ops: &Vec<Op>) {
+    const P: i32 = 10007;
+    let mut i = 2019;
+    for op in ops.iter() {
+	match op {
+	    Op::Rev => {
+		i = P - 1 - i;
+	    },
+	    Op::Cut { n } => {
+		i = (i - n) % P;
+		if i < 0 {
+		    i += P;
+		}
+	    },
+	    Op::Inc { n } => {
+		i = (i * n) % P;
+	    },
+	}
+    }
+    println!("{}", i);
 }
 
 fn main() {
-    let (i, j) = process_input("day22.txt", 10007);
-    let k = ((j * 2019) + i) % 10007;
-    println!("{}", k);
+    let ops = parse_input("day22.txt");
+    part1(&ops);
 }
