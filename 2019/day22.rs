@@ -58,17 +58,14 @@ fn part1(ops: &Vec<Op>) {
 }
 
 fn part2(ops: &Vec<Op>) {
-    const P64: i64 = 119315717514047;
+    const P: i64 = 119315717514047;
     const E: i64 = 101741582076661;
-    let p = BigInt::from(P64);
-    let zero = BigInt::ZERO;
-    let one = BigInt::from(1);
 
     let norm = |state: &(BigInt, BigInt)| -> (BigInt, BigInt) {
-	let res = (&state.0 % &p, &state.1 % &p);
+	let res = (&state.0 % P, &state.1 % P);
 	(
-	    &res.0 + if res.0.sign() == Sign::Minus { &p } else { &zero },
-	    &res.1 + if res.1.sign() == Sign::Minus { &p } else { &zero },
+	    &res.0 + if res.0.sign() == Sign::Minus { P } else { 0 },
+	    &res.1 + if res.1.sign() == Sign::Minus { P } else { 0 },
 	)
     };
 
@@ -76,15 +73,15 @@ fn part2(ops: &Vec<Op>) {
     for op in ops.iter().rev() {
 	match op {
 	    Op::Rev => {
-		state = (- state.0, &p - &one - &state.1);
+		state = (- &state.0, P - 1 - &state.1);
 	    },
 	    Op::Cut { n } => {
 		state.1 = &state.1 + *n;
 	    },
 	    Op::Inc { n } => {
-		let mut inv = i64::extended_gcd(&P64, &(*n as i64)).y;
+		let mut inv = i64::extended_gcd(&P, &(*n as i64)).y;
 		if inv < 0 {
-		    inv += P64;
+		    inv += P;
 		}
 		state = (&state.0 * inv, &state.1 * inv);
 	    }
@@ -96,9 +93,9 @@ fn part2(ops: &Vec<Op>) {
     let mut exp = E;
     while exp > 0 {
 	if exp % 2 == 1 {
-            i = (&i * &state.0 + &state.1) % &p;
+            i = (&i * &state.0 + &state.1) % P;
 	    if i.sign() == Sign::Minus {
-		i += &p;
+		i += P;
 	    }
 	    exp -= 1;
 	} else {
