@@ -1,3 +1,5 @@
+use num::{BigInt, Integer};
+use num::bigint::Sign;
 use regex::Regex;
 use std::fs;
 
@@ -55,7 +57,63 @@ fn part1(ops: &Vec<Op>) {
     println!("{}", i);
 }
 
+fn part2(ops: &Vec<Op>) {
+    const P64: i64 = 119315717514047;
+    const E: i64 = 101741582076661;
+    let p = BigInt::from(P64);
+    let zero = BigInt::ZERO;
+    let one = BigInt::from(1);
+
+    let norm = |state: &(BigInt, BigInt)| -> (BigInt, BigInt) {
+	let res = (&state.0 % &p, &state.1 % &p);
+	(
+	    &res.0 + if res.0.sign() == Sign::Minus { &p } else { &zero },
+	    &res.1 + if res.1.sign() == Sign::Minus { &p } else { &zero },
+	)
+    };
+
+    let mut state = (BigInt::from(1), BigInt::ZERO);
+    for op in ops.iter().rev() {
+	match op {
+	    Op::Rev => {
+		state = (- state.0, &p - &one - &state.1);
+	    },
+	    Op::Cut { n } => {
+		state.1 = &state.1 + *n;
+	    },
+	    Op::Inc { n } => {
+		let mut inv = i64::extended_gcd(&P64, &(*n as i64)).y;
+		if inv < 0 {
+		    inv += P64;
+		}
+		state = (&state.0 * inv, &state.1 * inv);
+	    }
+	}
+	state = norm(&state);
+    }
+
+    let mut i = BigInt::from(2020);
+    let mut exp = E;
+    while exp > 0 {
+	if exp % 2 == 1 {
+            i = (&i * &state.0 + &state.1) % &p;
+	    if i.sign() == Sign::Minus {
+		i += &p;
+	    }
+	    exp -= 1;
+	} else {
+	    state = norm(&(
+		&state.0 * &state.0,
+		&state.0 * &state.1 + &state.1,
+	    ));
+            exp /= 2;
+	}
+    }
+    println!("{}", i.to_string());
+}
+
 fn main() {
     let ops = parse_input("day22.txt");
     part1(&ops);
+    part2(&ops);
 }
