@@ -147,7 +147,7 @@ impl IntcodeComputer {
 
     #[allow(dead_code)]
     pub fn is_waiting_on_input(&self) -> bool {
-	!self.running && self.get_opcode() == 3
+	!self.running && self.get_opcode() == 3 && self.inputs.is_empty()
     }
 }
 
