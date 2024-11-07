@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-const MEM_SIZE: usize = 4096;
+const MEM_SIZE: usize = 16384;
 
 pub struct IntcodeComputer {
     inputs: VecDeque<i64>,
