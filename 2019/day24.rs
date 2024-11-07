@@ -6,6 +6,11 @@ const INPUT: [&str; 5] = [
     ".#...",
     "#..#.",
     ".##..",
+    // "....#",
+    // "#..#.",
+    // "#..##",
+    // "..#..",
+    // "#....",
 ];
 
 #[inline(always)]
@@ -62,7 +67,7 @@ fn step(state: u32) -> u32 {
 	    if c {
 		res |= if cnt == 1 { mask } else { 0 };
 	    } else {
-		res |= if cnt <= 2 { mask } else { 0 };
+		res |= if cnt == 1 || cnt == 2 { mask } else { 0 };
 	    }
 	}
     }
@@ -76,7 +81,6 @@ fn part1() {
 	visited.insert(state);
 	state = step(state);
     }
-    print_state(state);
     println!("{}", state);
 }
 
