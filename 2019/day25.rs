@@ -46,6 +46,14 @@ struct State {
 }
 
 impl State {
+    fn new(code: &Vec<i64>, ignored_items: HashSet<String>) -> Self {
+	Self {
+	    comp: IntcodeComputer::new(vec![], &code),
+	    pos: (0, 0),
+	    visited: HashSet::new(),
+	    ignored_items,
+	}
+    }
 
     fn step_comp(&mut self, input: &str) -> String {
 	println!("{}", input);
@@ -64,6 +72,11 @@ impl State {
 	// Test if move was successful.
 	let re_fail = Regex::new(r"You can't go that way.").unwrap();
 	if re_fail.is_match(buff.as_str()) {
+	    return false
+	}
+	let re_ejected =
+	    Regex::new(r"you are ejected back to the checkpoint").unwrap();
+	if re_ejected.is_match(buff.as_str()) {
 	    return false
 	}
 
@@ -111,11 +124,11 @@ impl State {
 	// Run one step and get output. Then iterate commands.
 	self.step_comp(&String::new());
 	self.step();
+	self.step_comp("inv");
     }
 }
 
 fn part1(code: &Vec<i64>) {
-    let comp = IntcodeComputer::new(vec![], &code);
     let ignored_items = HashSet::from([
 	"photons",
 	"infinite loop",
@@ -123,12 +136,7 @@ fn part1(code: &Vec<i64>) {
 	"molten lava",
 	"giant electromagnet",
     ].map(|i| String::from(i)));
-    let mut state = State {
-	comp,
-	pos: (0, 0),
-	visited: HashSet::new(),
-	ignored_items,
-    };
+    let mut state = State::new(&code, ignored_items);
     state.run();
 }
 
