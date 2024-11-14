@@ -81,15 +81,12 @@ impl State {
 	}
 
 	// Take item if there is an item.
-	let re_items = Regex::new(r"Items here:\n- (.*)\n").unwrap();
-	match re_items.captures(buff.as_str()) {
-	    Some(captures) => {
-		let item = captures.get(1).unwrap().as_str();
-		if !self.ignored_items.contains(&String::from(item)) {
-		    self.step_comp(&(String::from("take ") + item).as_str());
-		}
-	    },
-	    None => {},
+	let re_items = Regex::new(r"Items here:\n(- (.*)\n)+").unwrap();
+	for item_capture in re_items.captures_iter(buff.as_str()) {
+	    let item = item_capture.get(2).unwrap().as_str();
+	    if !self.ignored_items.contains(&String::from(item)) {
+		self.step_comp(&(String::from("take ") + item).as_str());
+	    }
 	}
 
 	self.visited.insert(self.pos.clone());
