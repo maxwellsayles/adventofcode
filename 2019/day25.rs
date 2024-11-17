@@ -80,11 +80,9 @@ impl State {
 	    return false
 	}
 
-	// Take item if there is an item.
-	let re_items = Regex::new(r"Items here:\n(- (.*)\n)+").unwrap();
-	for item_capture in re_items.captures_iter(buff.as_str()) {
-	    let item = item_capture.get(2).unwrap().as_str();
-	    if !self.ignored_items.contains(&String::from(item)) {
+	// Take items if there are any.
+	for item in Self::parse_items(buff.as_str(), "Items here:\n").iter() {
+	    if !self.ignored_items.contains(item) {
 		self.step_comp(&(String::from("take ") + item).as_str());
 	    }
 	}
@@ -94,34 +92,57 @@ impl State {
 	true
     }
 
-    fn step(&mut self) {
+    fn step_take_items(&mut self) {
 	if self.visited.contains(&self.pos) {
 	    return;
 	}
 
 	if self.try_move("north", 0, -1) {
-	    self.step();
+	    self.step_take_items();
 	    assert!(self.try_move("south", 0, 1));
 	}
 	if self.try_move("east", 1, 0) {
-	    self.step();
+	    self.step_take_items();
 	    assert!(self.try_move("west", -1, 0));
 	}
 	if self.try_move("south", 0, 1) {
-	    self.step();
+	    self.step_take_items();
 	    assert!(self.try_move("north", 0, -1));
 	}
 	if self.try_move("west", -1, 0) {
-	    self.step();
+	    self.step_take_items();
 	    assert!(self.try_move("east", 1, 0));
 	}
+    }
+
+    fn parse_items(buff: &str, prefix: &str) -> Vec<String> {
+	let mut res = Vec::new();
+	let re_group = Regex::new(&format!("{}(- .*\n)*", prefix)).unwrap();
+	match re_group.captures(&buff) {
+	    Some(group_capture) => {
+		let re_item = Regex::new(r"- (.*)").unwrap();
+		for l in group_capture.get(0).unwrap().as_str().lines() {
+		    match re_item.captures(l) {
+			Some(capture) => res.push(capture.get(1).unwrap().as_str().to_string()),
+			None => {}
+		    }
+		}
+	    }
+	    None => {},
+	}
+	res
+    }
+
+    fn list_items(&mut self) -> Vec<String> {
+	let buff = self.step_comp("inv");
+	Self::parse_items(&buff, "Items in your inventory:\n")
     }
 
     fn run(&mut self) {
 	// Run one step and get output. Then iterate commands.
 	self.step_comp(&String::new());
-	self.step();
-	self.step_comp("inv");
+	self.step_take_items();
+	self.list_items();
     }
 }
 
