@@ -41,6 +41,8 @@ fn repl(code: &Vec<i64>) {
 struct State {
     comp: IntcodeComputer,
     pos: (i32, i32),
+    room: String,
+    items: Vec<String>,
     visited: HashSet<(i32, i32)>,
     ignored_items: HashSet<String>,
 }
@@ -50,6 +52,8 @@ impl State {
 	Self {
 	    comp: IntcodeComputer::new(vec![], &code),
 	    pos: (0, 0),
+	    room: String::new(),
+	    items: Vec::new(),
 	    visited: HashSet::new(),
 	    ignored_items,
 	}
@@ -63,6 +67,17 @@ impl State {
 	self.comp.run();
 	let buff = from_comp(&mut self.comp);
 	print!("{}", buff);
+
+	// Update the room name.
+	let re_room = Regex::new("== (.*) ==").unwrap();
+	self.room = match re_room.captures(buff.as_str()) {
+	    Some(capture) => capture.get(1).unwrap().as_str().to_string(),
+	    None => String::new(),
+	};
+
+	// Update items.
+	self.items = Self::parse_items(buff.as_str(), "Items here:\n");
+
 	buff
     }
 
@@ -80,22 +95,22 @@ impl State {
 	    return false
 	}
 
-	// Take items if there are any.
-	for item in Self::parse_items(buff.as_str(), "Items here:\n").iter() {
-	    if !self.ignored_items.contains(item) {
-		self.step_comp(&(String::from("take ") + item).as_str());
-	    }
-	}
-
-	self.visited.insert(self.pos.clone());
 	self.pos = (self.pos.0 + dx, self.pos.1 + dy);
 	true
     }
 
     fn step_take_items(&mut self) {
+	// Take items if there are any.
+	for item in self.items.clone().iter() {
+	    if !self.ignored_items.contains(item.as_str()) {
+		self.step_comp(&(String::from("take ") + item).as_str());
+	    }
+	}
+
 	if self.visited.contains(&self.pos) {
 	    return;
 	}
+	self.visited.insert(self.pos.clone());
 
 	if self.try_move("north", 0, -1) {
 	    self.step_take_items();
