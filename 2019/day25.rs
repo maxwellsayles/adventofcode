@@ -38,6 +38,40 @@ fn repl(code: &Vec<i64>) {
     }
 }
 
+struct SubsetIterator<'a, T> {
+    count: usize,
+    set: &'a Vec<T>,
+}
+
+impl<'a, T> SubsetIterator<'a, T> {
+    fn new(set: &'a Vec<T>) -> Self {
+	Self {
+	    count: 0,
+	    set,
+	}
+    }
+}
+
+impl<'a, T> Iterator for SubsetIterator<'a, T> {
+    type Item = Vec<&'a T>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+	if self.count == 1 << self.set.len() {
+	    return None
+	}
+
+	let mut res = Vec::new();
+	for (i, e) in self.set.iter().enumerate() {
+	    if self.count & (1 << i) != 0 {
+		res.push(e);
+	    }
+	}
+
+	self.count += 1;
+	Some(res)
+    }
+}
+
 struct State {
     comp: IntcodeComputer,
     room: String,
@@ -167,7 +201,12 @@ impl State {
 	let buff = self.step_comp(&String::new());
 	self.update_room_state(buff.as_str());
 	self.step_take_items();
-	self.list_items();
+	let items = self.list_items().unwrap_or(HashSet::new());
+	let items_vec = Vec::from_iter(items.iter());
+	let iter = SubsetIterator::new(&items_vec);
+	for set in iter {
+	    println!("{:?}", set);
+	}
     }
 }
 
