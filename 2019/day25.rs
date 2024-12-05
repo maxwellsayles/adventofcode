@@ -40,11 +40,10 @@ fn repl(code: &Vec<i64>) {
 
 struct State {
     comp: IntcodeComputer,
-    pos: (i32, i32),
     room: String,
     doors: HashSet<String>,
     items: HashSet<String>,
-    visited: HashSet<(i32, i32)>,
+    visited: HashSet<String>,
     ignored_items: HashSet<String>,
 }
 
@@ -52,7 +51,6 @@ impl State {
     fn new(code: &Vec<i64>, ignored_items: HashSet<String>) -> Self {
 	Self {
 	    comp: IntcodeComputer::new(vec![], &code),
-	    pos: (0, 0),
 	    room: String::new(),
 	    doors: HashSet::new(),
 	    items: HashSet::new(),
@@ -87,7 +85,7 @@ impl State {
 	    .unwrap_or(HashSet::new());
     }
 
-    fn try_move(&mut self, dir: &str, dx: i32, dy: i32) -> bool {
+    fn try_move(&mut self, dir: &str) -> bool {
 	if !self.doors.contains(dir) {
 	    return false
 	}
@@ -107,8 +105,6 @@ impl State {
 	}
 
 	self.update_room_state(buff);
-
-	self.pos = (self.pos.0 + dx, self.pos.1 + dy);
 	true
     }
 
@@ -120,26 +116,26 @@ impl State {
 	    }
 	}
 
-	if self.visited.contains(&self.pos) {
+	if self.visited.contains(&self.room) {
 	    return
 	}
-	self.visited.insert(self.pos.clone());
+	self.visited.insert(self.room.clone());
 
-	if self.try_move("north", 0, -1) {
+	if self.try_move("north") {
 	    self.step_take_items();
-	    assert!(self.try_move("south", 0, 1));
+	    assert!(self.try_move("south"));
 	}
-	if self.try_move("east", 1, 0) {
+	if self.try_move("east") {
 	    self.step_take_items();
-	    assert!(self.try_move("west", -1, 0));
+	    assert!(self.try_move("west"));
 	}
-	if self.try_move("south", 0, 1) {
+	if self.try_move("south") {
 	    self.step_take_items();
-	    assert!(self.try_move("north", 0, -1));
+	    assert!(self.try_move("north"));
 	}
-	if self.try_move("west", -1, 0) {
+	if self.try_move("west") {
 	    self.step_take_items();
-	    assert!(self.try_move("east", 1, 0));
+	    assert!(self.try_move("east"));
 	}
     }
 
