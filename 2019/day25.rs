@@ -42,7 +42,8 @@ struct State {
     comp: IntcodeComputer,
     pos: (i32, i32),
     room: String,
-    items: Vec<String>,
+    doors: HashSet<String>,
+    items: HashSet<String>,
     visited: HashSet<(i32, i32)>,
     ignored_items: HashSet<String>,
 }
@@ -53,7 +54,8 @@ impl State {
 	    comp: IntcodeComputer::new(vec![], &code),
 	    pos: (0, 0),
 	    room: String::new(),
-	    items: Vec::new(),
+	    doors: HashSet::new(),
+	    items: HashSet::new(),
 	    visited: HashSet::new(),
 	    ignored_items,
 	}
@@ -67,33 +69,44 @@ impl State {
 	self.comp.run();
 	let buff = from_comp(&mut self.comp);
 	print!("{}", buff);
+	buff
+    }
 
+    fn update_room_state(&mut self, buff: &str) {
 	// Update the room name.
 	let re_room = Regex::new("== (.*) ==").unwrap();
-	self.room = match re_room.captures(buff.as_str()) {
+	self.room = match re_room.captures(buff) {
 	    Some(capture) => capture.get(1).unwrap().as_str().to_string(),
 	    None => String::new(),
 	};
 
-	// Update items.
-	self.items = Self::parse_items(buff.as_str(), "Items here:\n");
-
-	buff
+	// Update doors and items.
+	self.doors = Self::parse_bullets(buff, "Doors here lead:\n")
+	    .unwrap_or(HashSet::new());
+	self.items = Self::parse_bullets(buff, "Items here:\n")
+	    .unwrap_or(HashSet::new());
     }
 
     fn try_move(&mut self, dir: &str, dx: i32, dy: i32) -> bool {
-	let buff = self.step_comp(dir);
+	if !self.doors.contains(dir) {
+	    return false
+	}
+
+	let buff_binding = self.step_comp(dir);
+	let buff = buff_binding.as_str();
 
 	// Test if move was successful.
 	let re_fail = Regex::new(r"You can't go that way.").unwrap();
-	if re_fail.is_match(buff.as_str()) {
+	if re_fail.is_match(buff) {
 	    return false
 	}
 	let re_ejected =
 	    Regex::new(r"you are ejected back to the checkpoint").unwrap();
-	if re_ejected.is_match(buff.as_str()) {
+	if re_ejected.is_match(buff) {
 	    return false
 	}
+
+	self.update_room_state(buff);
 
 	self.pos = (self.pos.0 + dx, self.pos.1 + dy);
 	true
@@ -108,7 +121,7 @@ impl State {
 	}
 
 	if self.visited.contains(&self.pos) {
-	    return;
+	    return
 	}
 	self.visited.insert(self.pos.clone());
 
@@ -130,32 +143,33 @@ impl State {
 	}
     }
 
-    fn parse_items(buff: &str, prefix: &str) -> Vec<String> {
-	let mut res = Vec::new();
+    fn parse_bullets(buff: &str, prefix: &str) -> Option<HashSet<String>> {
 	let re_group = Regex::new(&format!("{}(- .*\n)*", prefix)).unwrap();
 	match re_group.captures(&buff) {
 	    Some(group_capture) => {
 		let re_item = Regex::new(r"- (.*)").unwrap();
+		let mut res = HashSet::new();
 		for l in group_capture.get(0).unwrap().as_str().lines() {
 		    match re_item.captures(l) {
-			Some(capture) => res.push(capture.get(1).unwrap().as_str().to_string()),
-			None => {}
-		    }
+			Some(capture) => res.insert(capture.get(1).unwrap().as_str().to_string()),
+			None => true,
+		    };
 		}
-	    }
-	    None => {},
+		Some(res)
+	    },
+	    None => None,
 	}
-	res
     }
 
-    fn list_items(&mut self) -> Vec<String> {
+    fn list_items(&mut self) -> Option<HashSet<String>> {
 	let buff = self.step_comp("inv");
-	Self::parse_items(&buff, "Items in your inventory:\n")
+	Self::parse_bullets(&buff, "Items in your inventory:\n")
     }
 
     fn run(&mut self) {
 	// Run one step and get output. Then iterate commands.
-	self.step_comp(&String::new());
+	let buff = self.step_comp(&String::new());
+	self.update_room_state(buff.as_str());
 	self.step_take_items();
 	self.list_items();
     }
