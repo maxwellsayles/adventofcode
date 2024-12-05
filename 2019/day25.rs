@@ -109,17 +109,17 @@ impl State {
     }
 
     fn step_take_items(&mut self) {
+	if self.visited.contains(&self.room) {
+	    return
+	}
+	self.visited.insert(self.room.clone());
+
 	// Take items if there are any.
 	for item in self.items.clone().iter() {
 	    if !self.ignored_items.contains(item.as_str()) {
 		self.step_comp(&(String::from("take ") + item).as_str());
 	    }
 	}
-
-	if self.visited.contains(&self.room) {
-	    return
-	}
-	self.visited.insert(self.room.clone());
 
 	if self.try_move("north") {
 	    self.step_take_items();
