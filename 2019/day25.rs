@@ -173,6 +173,49 @@ impl State {
 	}
     }
 
+    fn at_security_checkpoint(&self) -> bool {
+	self.room == "Security Checkpoint"
+    }
+
+    fn step_to_security_checkpoint(&mut self) {
+	if self.at_security_checkpoint() {
+	    return
+	}
+	if self.visited.contains(&self.room) {
+	    return
+	}
+	self.visited.insert(self.room.clone());
+
+	if self.try_move("north") {
+	    self.step_to_security_checkpoint();
+	    if self.at_security_checkpoint() {
+		return
+	    }
+	    assert!(self.try_move("south"));
+	}
+	if self.try_move("east") {
+	    self.step_to_security_checkpoint();
+	    if self.at_security_checkpoint() {
+		return
+	    }
+	    assert!(self.try_move("west"));
+	}
+	if self.try_move("south") {
+	    self.step_to_security_checkpoint();
+	    if self.at_security_checkpoint() {
+		return
+	    }
+	    assert!(self.try_move("north"));
+	}
+	if self.try_move("west") {
+	    self.step_to_security_checkpoint();
+	    if self.at_security_checkpoint() {
+		return
+	    }
+	    assert!(self.try_move("east"));
+	}
+    }
+
     fn parse_bullets(buff: &str, prefix: &str) -> Option<HashSet<String>> {
 	let re_group = Regex::new(&format!("{}(- .*\n)*", prefix)).unwrap();
 	match re_group.captures(&buff) {
@@ -191,9 +234,34 @@ impl State {
 	}
     }
 
-    fn list_items(&mut self) -> Option<HashSet<String>> {
+    fn list_items(&mut self) -> HashSet<String> {
 	let buff = self.step_comp("inv");
 	Self::parse_bullets(&buff, "Items in your inventory:\n")
+	    .unwrap_or(HashSet::new())
+    }
+
+    fn drop_all_items(&mut self) {
+	for item in self.list_items().iter() {
+	    let drop_string = format!("drop {}", item);
+	    self.step_comp(drop_string.as_str());
+	}
+    }
+
+    fn hold_specific_items(&mut self, items: &Vec<&String>) {
+	self.drop_all_items();
+	for item in items.iter() {
+	    let take_string = format!("take {}", item);
+	    self.step_comp(take_string.as_str());
+	}
+    }
+
+    fn step_iter_items(&mut self, items: &Vec<String>) {
+	for items in SubsetIterator::new(items) {
+	    self.hold_specific_items(&items);
+	    if self.try_move("west") {
+		return
+	    }
+	}
     }
 
     fn run(&mut self) {
@@ -201,12 +269,12 @@ impl State {
 	let buff = self.step_comp(&String::new());
 	self.update_room_state(buff.as_str());
 	self.step_take_items();
-	let items = self.list_items().unwrap_or(HashSet::new());
-	let items_vec = Vec::from_iter(items.iter());
-	let iter = SubsetIterator::new(&items_vec);
-	for set in iter {
-	    println!("{:?}", set);
-	}
+
+	self.visited = HashSet::new();
+	self.step_to_security_checkpoint();
+
+	let items = self.list_items();
+	self.step_iter_items(&Vec::from_iter(items.into_iter()));
     }
 }
 
