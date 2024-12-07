@@ -240,18 +240,21 @@ impl State {
 	    .unwrap_or(HashSet::new())
     }
 
-    fn drop_all_items(&mut self) {
-	for item in self.list_items().iter() {
-	    let drop_string = format!("drop {}", item);
-	    self.step_comp(drop_string.as_str());
-	}
-    }
-
     fn hold_specific_items(&mut self, items: &Vec<&String>) {
-	self.drop_all_items();
-	for item in items.iter() {
-	    let take_string = format!("take {}", item);
-	    self.step_comp(take_string.as_str());
+	let items_set: HashSet<String> =
+	    HashSet::from_iter(items.iter().map(|s| s.to_string()));
+	let holding_items = self.list_items();
+	for holding_item in holding_items.iter() {
+	    if !items_set.contains(holding_item) {
+		let drop_string = format!("drop {}", holding_item);
+		self.step_comp(drop_string.as_str());
+	    }
+	}
+	for item in items_set.iter() {
+	    if !holding_items.contains(item) {
+		let take_string = format!("take {}", item);
+		self.step_comp(take_string.as_str());
+	    }
 	}
     }
 
