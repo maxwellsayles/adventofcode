@@ -11,45 +11,45 @@ use std::fs;
 
 const ONE_TRILLION: i64 = 1000000000000;
 
-type Consume = HashMap<String, i64>;
-type Produce = HashMap<String, i64>;
+type Consume<'a> = HashMap<&'a str, i64>;
+type Produce<'a> = HashMap<&'a str, i64>;
 
-type Reaction = (Consume, Produce);
+type Reaction<'a> = (Consume<'a>, Produce<'a>);
 
 #[derive(Debug)]
-struct Rule {
+struct Rule<'a> {
     qty: i64,
-    produce: String,
-    consume: Consume,
+    produce: &'a str,
+    consume: Consume<'a>,
 }
 
-type Rules = HashMap<String, Rule>;
+type Rules<'a> = HashMap<&'a str, Rule<'a>>;
 
-fn parse_rule(txt: &str) -> Rule {
+fn parse_rule<'a>(txt: &'a str) -> Rule<'a> {
     let lhs_rhs: Vec<_> = txt.split(" => ").collect();
     let (lhs, rhs) = (lhs_rhs[0], lhs_rhs[1]);
     let consume: Consume = lhs
 	.split(", ")
 	.map(|item| {
 	    let xs: Vec<_> = item.split(' ').collect();
-	    (String::from(xs[1]), xs[0].parse::<i64>().unwrap())
+	    (xs[1], xs[0].parse::<i64>().unwrap())
 	})
 	.collect();
     let produce_tmp: Vec<_> = rhs.split(' ').collect();
 
     Rule {
 	qty: produce_tmp[0].parse::<i64>().unwrap(),
-	produce: String::from(produce_tmp[1]),
+	produce: produce_tmp[1],
 	consume,
     }
 }
 
-fn scale_reaction(
-    r: &Reaction,
+fn scale_reaction<'a>(
+    r: &Reaction<'a>,
     x: i64,
-) -> Reaction {
-    let consume = r.0.iter().map(|(k, v)| (k.clone(), v * x)).collect();
-    let produce = r.1.iter().map(|(k, v)| (k.clone(), v * x)).collect();
+) -> Reaction<'a> {
+    let consume = r.0.iter().map(|(k, v)| (*k, v * x)).collect();
+    let produce = r.1.iter().map(|(k, v)| (*k, v * x)).collect();
     (consume, produce)
 }
 
@@ -57,42 +57,42 @@ fn scale_reaction(
  * Return a reaction that produces at least the requested amount of an element
  * (may produce more than the requested amount).
  */
-fn produce_reaction(
-    rules: &Rules,
-    to_produce: &String,
+fn produce_reaction<'a>(
+    rules: &Rules<'a>,
+    to_produce: &'a str,
     qty: i64,
-) -> Reaction {
+) -> Reaction<'a> {
     let rule = &rules[to_produce];
     let mult = ((qty as f32) / (rule.qty as f32)).ceil() as i64;
     let consume = rule.consume.clone();
-    let produce = HashMap::from([(to_produce.clone(), rule.qty)]);
+    let produce = HashMap::from([(to_produce, rule.qty)]);
     scale_reaction(&(consume, produce), mult)
 }
 
-fn combine_reactions(
-    x: &Reaction,
-    y: &Reaction,
-) -> Reaction {
-    fn combine(
-	x: &HashMap<String, i64>,
-	y: &HashMap<String, i64>,
-    ) -> HashMap<String, i64> {
+fn combine_reactions<'a>(
+    x: &Reaction<'a>,
+    y: &Reaction<'a>,
+) -> Reaction<'a> {
+    fn combine<'a>(
+	x: &HashMap<&'a str, i64>,
+	y: &HashMap<&'a str, i64>,
+    ) -> HashMap<&'a str, i64> {
 	let mut z = x.clone();
 	for (k, v) in y.iter() {
 	    let vv = z.get(k).unwrap_or(&0) + v;
-	    z.insert(k.clone(), vv);
+	    z.insert(k, vv);
 	}
 	z
     }
     (combine(&x.0, &y.0), combine(&x.1, &y.1))
 }
 
-fn normalize_reaction(r: &Reaction) -> Reaction {
+fn normalize_reaction<'a>(r: &Reaction<'a>) -> Reaction<'a> {
     let mut cs = HashMap::new();
     for (ck, cv) in r.0.iter() {
 	let vv = max(0, cv - r.1.get(ck).unwrap_or(&0));
 	if vv > 0 {
-	    cs.insert(ck.clone(), vv);
+	    cs.insert(*ck, vv);
 	}
     }
 
@@ -100,20 +100,20 @@ fn normalize_reaction(r: &Reaction) -> Reaction {
     for (pk, pv) in r.1.iter() {
 	let vv = max(0, pv - r.0.get(pk).unwrap_or(&0));
 	if vv > 0 {
-	    ps.insert(pk.clone(), vv);
+	    ps.insert(*pk, vv);
 	}
     }
 
     (cs, ps)
 }
 
-fn is_consume_just_ore(r: &Reaction) -> bool {
-    r.0.len() == 1 && r.0.contains_key(&String::from("ORE"))
+fn is_consume_just_ore<'a>(r: &Reaction<'a>) -> bool {
+    r.0.len() == 1 && r.0.contains_key(&"ORE")
 }
 
-fn get_random_non_ore_from_consume<'a>(r: &'a Reaction) -> (&'a String, i64) {
+fn get_random_non_ore_from_consume<'a>(r: &Reaction<'a>) -> (&'a str, i64) {
     for (k, v) in r.0.iter() {
-	if k != "ORE" {
+	if *k != "ORE" {
 	    return (k, *v);
 	}
     }
@@ -121,15 +121,15 @@ fn get_random_non_ore_from_consume<'a>(r: &'a Reaction) -> (&'a String, i64) {
     panic!("No pair found in {:?}", r);
 }
 
-fn step_reaction(rules: &Rules, r: &Reaction) -> Reaction {
-    let (k, v) = get_random_non_ore_from_consume(&r);
-    let r1 = produce_reaction(&rules, k, v);
+fn step_reaction<'a>(rules: &Rules<'a>, r: &Reaction<'a>) -> Reaction<'a> {
+    let (k, v) = get_random_non_ore_from_consume(r);
+    let r1 = produce_reaction(rules, k, v);
     let r2 = combine_reactions(r, &r1);
     normalize_reaction(&r2)
 }
 
-fn part1(rules: &Rules) {
-    let mut r = produce_reaction(rules, &String::from("FUEL"), 1);
+fn part1<'a>(rules: &Rules<'a>) {
+    let mut r = produce_reaction(rules, "FUEL", 1);
     while !is_consume_just_ore(&r) {
 	r = step_reaction(rules, &r);
     }
@@ -140,9 +140,9 @@ fn part1(rules: &Rules) {
  * Found by binary searching for the largest amount of FUEL that produced the
  * largest amount of ORE <= 10^12.
  */
-fn part2(rules: &Rules) {
+fn part2<'a>(rules: &Rules<'a>) {
     let eval = |fuel: i64| -> bool {
-	let mut r = produce_reaction(rules, &String::from("FUEL"), fuel);
+	let mut r = produce_reaction(rules, "FUEL", fuel);
 	while !is_consume_just_ore(&r) {
 	    r = step_reaction(rules, &r);
 	}
@@ -171,7 +171,7 @@ fn main() {
 	.map(|s| parse_rule(s));
 
     let rules: Rules = xs
-	.map(|rule| (rule.produce.clone(), rule))
+	.map(|rule| (rule.produce, rule))
 	.collect();
 
     part1(&rules);
