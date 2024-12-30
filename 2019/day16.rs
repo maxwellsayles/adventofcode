@@ -26,8 +26,8 @@ impl Iterator for FFTValIter {
     }
 }
 
-fn dot_product<'a>(
-    x: impl Iterator<Item=&'a i32>,
+fn dot_product(
+    x: impl Iterator<Item=i32>,
     y: impl Iterator<Item=i32>,
 ) -> i32 {
     x.zip(y).map(|(a, b)| a * b).sum()
@@ -41,7 +41,7 @@ fn lsd(x: i32) -> i32 {
 fn fft(x: &Vec<i32>) -> Vec<i32> {
     let mut res = Vec::with_capacity(x.len());
     for i in 1..=x.len() {
-	let d = dot_product(x.iter(), FFTValIter::new(i));
+	let d = dot_product(x.iter().map(|x| *x), FFTValIter::new(i));
 	res.push(lsd(d));
     }
     res
