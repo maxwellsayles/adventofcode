@@ -1,0 +1,1 @@
+Only 5 years behind on my AOC. This year I'm going to try the Covid year, 2020. I'm using Python to flex that practical programming muscle, since Python is more generally useful in industry and in interviewing. Cheers.
