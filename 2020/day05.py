@@ -8,9 +8,9 @@ def part1(input):
     return max(map(seatID, input))
 
 def part2(input):
-    ids = sorted(map(seatID, input))
-    x = ids[0]
-    y = ids[-1]
+    ids = list(map(seatID, input))
+    x = min(ids)
+    y = max(ids)
     h = y * (y + 1) // 2
     l = x * (x - 1) // 2
     return h - l - sum(ids)
