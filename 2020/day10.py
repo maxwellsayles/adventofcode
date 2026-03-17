@@ -1,3 +1,5 @@
+from collections import deque
+
 def part1(input):
     a, b = 0, 0
     for x, y in zip(input, input[1:]):
@@ -10,13 +12,14 @@ def part1(input):
     return a * b
 
 def part2(input):
-    opts = [1]
+    opts = deque([1], maxlen=3)
     n = len(input)
     for i in range(1, n):
         opt = 0
-        for j in [i - 1, i - 2, i - 3]:
+        for d in range(-1, -4, -1):
+            j = i + d
             if j >= 0 and input[j] >= input[i] - 3:
-                opt += opts[j]
+                opt += opts[d]
         opts.append(opt)
     return opts[-1]
 
